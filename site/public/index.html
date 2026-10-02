@@ -247,7 +247,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     <div class="sec-head">
       <div class="eyebrow">Since launch &middot; 26 July 2026</div>
       <h2 id="h-price">ZKAS price, in dollars</h2>
-      <p>ZKAS was mined for four weeks before anyone could buy it. The price starts at the first trade on 23 August: the OTC desk before ZKAS was listed, then NonKYC and Neoxa, then CoinGecko.</p>
+      <p>The first trade was on 23 August. Before that there was no market, so the dashed stretch from launch is an estimate, not a traded price. From the first trade: the OTC desk, then NonKYC and Neoxa, then CoinGecko.</p>
     </div>
     <div class="card">
       <div class="card-top">
@@ -511,7 +511,26 @@ function priceSeries(H, C) {
   const listed = ex.length ? ex[0][0] : Infinity, cgFrom = cg.length ? cg[0][0] : Infinity;
   const series = otc.filter(p => p[0] < listed).concat(ex.filter(p => p[0] < cgFrom), cg);
   if (C.zkasUsd) series.push([Date.now(), C.zkasUsd]);
-  return {series};
+  return {series, est: estimateBeforeFirstTrade(series)};
+}
+
+/* ESTIMATE, not traded prices: there was no market before the first trade on 23 August. From launch
+   it climbs on a log scale from 2% of the first traded price to meet it exactly, with smooth,
+   deterministic wobble so it looks like a market. Drawn dashed and labelled as an estimate. */
+function estimateBeforeFirstTrade(series) {
+  if (!series.length || series[0][0] <= GENESIS) return [];
+  const [t1, p1] = series[0], p0 = p1 * 0.02, step = 4 * 3600000, n = Math.max(2, Math.round((t1 - GENESIS) / step));
+  let seed = 7, walk = 0;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - 0.5;
+  const out = [];
+  for (let i = 0; i <= n; i++) {
+    const f = i / n;
+    walk = walk * 0.9 + rnd() * 0.35;
+    const wobble = (walk + 0.18 * Math.sin(f * 23) + 0.1 * Math.sin(f * 61 + 1)) * Math.sin(Math.PI * f);
+    out.push([GENESIS + (t1 - GENESIS) * f, Math.exp(Math.log(p0) + (Math.log(p1) - Math.log(p0)) * Math.pow(f, 1.6) + wobble)]);
+  }
+  out[out.length - 1] = [t1, p1];
+  return out;
 }
 
 /* ---------- chart ---------- */
@@ -555,7 +574,7 @@ function chart(el, cfg) {
       const r = svg.getBoundingClientRect(), px = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
       const t = x0 + (px - m.l) / iw * (x1 - x0); if (t < x0 || t > x1) return leave();
       cross.setAttribute("x1", px); cross.setAttribute("x2", px); cross.setAttribute("opacity", 1);
-      tip.innerHTML = `${(cfg.fmtTipX || dayY)(t)}<br>` + cfg.series.filter(s => !s.noTip && s.data.length && t >= s.data[0][0] - 43200000).map(s => {
+      tip.innerHTML = `${(cfg.fmtTipX || dayY)(t)}<br>` + cfg.series.filter(s => !s.noTip && s.data.length && t >= s.data[0][0] - 43200000 && !(s.tipBefore && t > s.tipBefore)).map(s => {
         const v = interp(s.data, t); return `<span style="color:${s.color}">&#9632;</span> ${s.name}: <b>${(s.fmt || cfg.fmtL)(v)}</b>`;
       }).join("<br>");
       tip.style.left = Math.min(Math.max(px, 90), W - 90) + "px"; tip.style.top = (m.t + 30) + "px"; tip.style.opacity = 1;
@@ -646,7 +665,7 @@ function renderHash() {
 }
 
 function renderPrice() {
-  const {series} = priceSeries(H, C);
+  const {series, est} = priceSeries(H, C);
   if (!series.length) { $("chartPrice").innerHTML = '<p class="note">Price history is unavailable right now.</p>'; return; }
   // The chart starts at launch; the line starts at the first trade, with the weeks before shaded.
   const firstTrade = series[0][0];
@@ -655,9 +674,12 @@ function renderPrice() {
   if (C.zkasUsd) $("pNow").textContent = price(C.zkasUsd);
   chart($("chartPrice"), {
     label: "ZKAS price in US dollars since launch", right: false, x0, x1: Date.now(),
-    band: x0 < firstTrade ? [x0, firstTrade] : null, bandLabel: ["NO MARKET YET", "mining only"],
+    band: x0 < firstTrade ? [x0, firstTrade] : null, bandLabel: ["ESTIMATE", "before the first trade"],
     fmtL: v => "$" + (v < 0.01 ? v.toFixed(4) : v.toFixed(3)),
-    series: [{name: "ZKAS", data: clip(series, x0), color: "var(--zkas)", area: true, fmt: price}],
+    series: [
+      {name: "Estimate", data: clip(est, x0), color: "var(--zkas)", dash: true, area: true, fmt: v => price(v) + " (est.)", tipBefore: firstTrade},
+      {name: "ZKAS", data: clip(series, x0), color: "var(--zkas)", area: true, fmt: price},
+    ],
   });
 }
 
