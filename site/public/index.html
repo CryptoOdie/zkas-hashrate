@@ -64,7 +64,7 @@ h2{font-weight:700; font-size:clamp(30px,4.4vw,46px); line-height:1.04}
 /* hero */
 .hero{background:var(--night); color:var(--night-ink); position:relative; overflow:hidden; isolation:isolate}
 .hero canvas{position:absolute; inset:0; width:100%; height:100%; z-index:-1; opacity:.9}
-.hero > .wrap{padding-block:172px 64px; display:grid; gap:26px; min-height:min(92vh,860px); align-content:center}
+.hero > .wrap{padding-block:196px 64px; display:grid; gap:26px; min-height:min(92vh,860px); align-content:center}
 .hero .eyebrow{color:var(--night-muted)}
 .live-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:#5FD3A8; margin-right:8px; vertical-align:1px; box-shadow:0 0 0 0 #5FD3A880; animation:pulse 2s infinite}
 @keyframes pulse{70%{box-shadow:0 0 0 10px #5FD3A800}100%{box-shadow:0 0 0 0 #5FD3A800}}
@@ -222,17 +222,11 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
 
 <header class="hero">
   <canvas id="dag" aria-hidden="true"></canvas>
-  <nav class="topbar" aria-label="ZKAS">
-    <div class="wrap topbar-in">
-      <img src="logo.png" alt="ZKAS" class="logo" onerror="this.remove()">
-      <p class="tagline">Private digital cash, built to actually be spent, unlike Zcash and Monero</p>
-    </div>
-  </nav>
   <div class="wrap">
     <div class="eyebrow"><span class="live-dot"></span>ZKAS merged mining &middot; live from both networks</div>
     <div class="brand"><img src="logo.png" alt="" width="64" height="64"><span>ZKAS</span></div>
     <h1>Same hashrate. <em>Two rewards.</em></h1>
-    <p class="lede">ZKAS payments leave no public record of who paid whom or how much, and confirm in seconds. Every Kaspa ASIC can mine it at the same time as Kaspa, with the same hashes and no extra power. Kaspa keeps paying you exactly what it did. ZKAS pays on top.</p>
+    <p class="lede"><b style="color:var(--night-ink)">Private digital cash, built to actually be spent, unlike Zcash and Monero.</b> ZKAS payments leave no public record of who paid whom or how much, and confirm in seconds. Every Kaspa ASIC can mine it at the same time as Kaspa, with the same hashes and no extra power. Kaspa keeps paying you exactly what it did. ZKAS pays on top.</p>
     <div class="boost" aria-live="polite">
       <div class="boost-num num" id="boost">+0%</div>
       <div class="boost-txt">
@@ -847,7 +841,7 @@ function heroCanvas() {
   const size = () => { dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; Hc = cv.clientHeight; cv.width = W * dpr; cv.height = Hc * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
   size(); addEventListener("resize", size);
   addEventListener("scroll", () => { scroll = Math.min(1, scrollY / Math.max(1, Hc)); }, {passive: true});
-  const laneK = () => 120, laneZ = () => 180 + 40 * scroll;
+  const laneK = () => 64, laneZ = () => 124 + 40 * scroll;
   const spawn = x => {
     const b = {x, y: laneK() + (Math.random() - .5) * 30, w: 16 + Math.random() * 6};
     blocks.push(b);
