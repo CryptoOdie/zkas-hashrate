@@ -247,7 +247,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     <div class="sec-head">
       <div class="eyebrow">Since the first trade &middot; 23 August 2026</div>
       <h2 id="h-price">ZKAS price, in dollars</h2>
-      <p>Every trade on the community OTC desk since the very first one, priced in KAS and converted at that day's KAS price, next to the exchange price since ZKAS listed on NonKYC on 25 September.</p>
+      <p>Every trade on the community OTC desk since the very first one, priced in KAS and converted at that day's KAS price, next to the exchange price since ZKAS listed on Neoxa on 14 September (and NonKYC from 25 September). ZKAS launched on 26 July; the first trade anywhere was on 23 August.</p>
     </div>
     <div class="card">
       <div class="card-top">
@@ -399,6 +399,8 @@ async function loadHistory() {
   out.priceHistory = union("priceHistory", p => p.t).sort((a, b) => a.t - b.t);
   out.nonkycDaily = union("nonkycDaily", c => c.t).sort((a, b) => a.t - b.t);
   out.kasUsdDaily = union("kasUsdDaily", p => p.t).sort((a, b) => a.t - b.t);
+  out.neoxaDaily = union("neoxaDaily", c => c.t).sort((a, b) => a.t - b.t);
+  out.otcTrades = (() => { const m = new Map(); for (const g of got) for (const x of g.otcTrades || []) m.set(x[0], x); return [...m.values()].sort((a, b) => a[0] - b[0]); })();
   return out;
 }
 async function loadLive() {
@@ -497,8 +499,14 @@ function priceSeries(H, C) {
   const trades = (H.otcTrades || []).filter(x => x[1] > 0);
   const lastOtc = trades.length ? trades[trades.length - 1] : null;
   if (lastOtc) otc.push([Math.max(lastOtc[0], otc.length ? otc[otc.length - 1][0] + 1 : 0), lastOtc[1] * C.kasUsd]);
-  // Exchanges: NonKYC daily close, then the live exchange price.
-  const ex = (H.nonkycDaily || []).map(c => [c.t + 43200000, c.c]).filter(p => p[0] < Date.now());
+  // Exchanges: each day's closes from Neoxa and NonKYC, weighted by that day's volume, then the live price.
+  const exDays = new Map();
+  for (const c of [...(H.neoxaDaily || []), ...(H.nonkycDaily || [])]) {
+    if (!(c.c > 0)) continue;
+    const d = Math.floor(c.t / 86400000) * 86400000 + 43200000, a = exDays.get(d) || [0, 0], w = c.v > 0 ? c.v : 1;
+    a[0] += c.c * w; a[1] += w; exDays.set(d, a);
+  }
+  const ex = [...exDays].sort((a, b) => a[0] - b[0]).map(([d, [pw, w]]) => [d, pw / w]).filter(p => p[0] < Date.now());
   if (C.zkasUsd) ex.push([Date.now(), C.zkasUsd]);
   return {otc, ex, otcNow: lastOtc ? lastOtc[1] * C.kasUsd : null, otcKas: lastOtc ? lastOtc[1] : null, trades: trades.length};
 }
