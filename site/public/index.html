@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ZKAS Merged Mining</title>
-<meta name="description" content="Mine ZKAS alongside Kaspa with the same hashrate. Live earnings boost, ZKAS hashrate and price since launch, and a profitability calculator with price scenarios.">
+<meta name="description" content="ZKAS is private digital cash built to be spent. Mine it alongside Kaspa with the same hashrate. Live earnings boost, ZKAS hashrate and price since launch, and a profitability calculator with price scenarios.">
 <meta property="og:title" content="Same hashrate. Two rewards.">
 <meta property="og:description" content="What merged-mining ZKAS adds to a Kaspa miner, live. Hashrate and price since launch, plus a hold-vs-sell profitability planner.">
 <meta property="og:type" content="website">
@@ -66,6 +66,8 @@ h2{font-weight:700; font-size:clamp(30px,4.4vw,46px); line-height:1.04}
 .hero .eyebrow{color:var(--night-muted)}
 .live-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:#5FD3A8; margin-right:8px; vertical-align:1px; box-shadow:0 0 0 0 #5FD3A880; animation:pulse 2s infinite}
 @keyframes pulse{70%{box-shadow:0 0 0 10px #5FD3A800}100%{box-shadow:0 0 0 0 #5FD3A800}}
+.tagline{margin:0; justify-self:start; font-size:clamp(15px,1.8vw,18px); color:var(--night-ink); background:#ffffff0f; border:1px solid var(--night-rule); border-radius:999px; padding:8px 16px}
+.tagline b{font-family:var(--display); color:#7FD1C1; letter-spacing:.02em}
 .hero h1{font-weight:800; font-size:clamp(44px,8vw,96px); line-height:.95; letter-spacing:-.025em; max-width:12ch}
 .hero h1 em{font-style:normal; color:#7FD1C1}
 .hero .lede{font-size:clamp(17px,2vw,21px); color:var(--night-muted); max-width:56ch; margin:0}
@@ -215,8 +217,9 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
   <canvas id="dag" aria-hidden="true"></canvas>
   <div class="wrap">
     <div class="eyebrow"><span class="live-dot"></span>ZKAS merged mining &middot; live from both networks</div>
+    <p class="tagline"><b>ZKAS</b> &middot; private digital cash, built to actually be spent</p>
     <h1>Same hashrate. <em>Two rewards.</em></h1>
-    <p class="lede">Every Kaspa ASIC can mine ZKAS at the same time, with the same hashes and no extra power. Kaspa keeps paying you exactly what it did. ZKAS pays on top.</p>
+    <p class="lede">ZKAS payments leave no public record of who paid whom or how much, and confirm in seconds. Every Kaspa ASIC can mine it at the same time as Kaspa, with the same hashes and no extra power. Kaspa keeps paying you exactly what it did. ZKAS pays on top.</p>
     <div class="boost" aria-live="polite">
       <div class="boost-num num" id="boost">+0%</div>
       <div class="boost-txt">
