@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ZKAS Merged Mining</title>
+<meta name="description" content="Mine ZKAS alongside Kaspa with the same hashrate. Live earnings boost, ZKAS hashrate and price since launch, and a profitability calculator with price scenarios.">
+<meta property="og:title" content="Same hashrate. Two rewards.">
+<meta property="og:description" content="What merged-mining ZKAS adds to a Kaspa miner, live. Hashrate and price since launch, plus a hold-vs-sell profitability planner.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://zkas-mining.web.app/">
+<meta property="og:image" content="https://zkas-mining.web.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="https://zkas-mining.web.app/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#ECEEE8; --surface:#F8F9F5; --ink:#16202A; --muted:#55626B; --rule:#C8CEC5;
+  --accent:#1E6F64; --accent-soft:#D6E6E1; --stamp:#9A3324;
+  --kas:#4A7FB0; --zkas:#1E6F64; --share:#C2672F; --hold:#1E6F64; --sell:#8A6D1E; --base:#7C8790;
+  --night:#0E1418; --night-2:#141C21; --night-ink:#E6ECE6; --night-muted:#93A3A0; --night-rule:#25323A;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0F1519; --surface:#151D22; --ink:#E3E8E2; --muted:#93A09D; --rule:#29353A;
+    --accent:#62B4A6; --accent-soft:#1B3330; --stamp:#E07A68;
+    --kas:#78A9D6; --zkas:#62B4A6; --share:#E39461; --hold:#62B4A6; --sell:#D1B25A; --base:#8796A0;
+    --night:#0A0F12; --night-2:#10171B;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0F1519; --surface:#151D22; --ink:#E3E8E2; --muted:#93A09D; --rule:#29353A;
+  --accent:#62B4A6; --accent-soft:#1B3330; --stamp:#E07A68;
+  --kas:#78A9D6; --zkas:#62B4A6; --share:#E39461; --hold:#62B4A6; --sell:#D1B25A; --base:#8796A0;
+  --night:#0A0F12; --night-2:#10171B;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.6}
+a{color:var(--accent); text-underline-offset:3px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
+.wrap{max-width:1080px; margin-inline:auto; padding-inline:20px}
+.progress{position:fixed; top:0; left:0; height:3px; width:100%; z-index:20;
+  background:linear-gradient(to right, var(--share) var(--p,0%), transparent var(--p,0%))}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+h1,h2,h3{font-family:var(--display); margin:0; text-wrap:balance}
+h2{font-weight:700; font-size:clamp(30px,4.4vw,46px); line-height:1.04}
+.sec{padding-block:88px 8px}
+.sec-head{display:grid; gap:12px; margin-bottom:28px; max-width:70ch}
+.sec-head p{color:var(--muted); margin:0}
+.num{font-variant-numeric:tabular-nums}
+
+/* hero */
+.hero{background:var(--night); color:var(--night-ink); position:relative; overflow:hidden; isolation:isolate}
+.hero canvas{position:absolute; inset:0; width:100%; height:100%; z-index:-1; opacity:.9}
+.hero .wrap{padding-block:196px 64px; display:grid; gap:26px; min-height:min(92vh,860px); align-content:center}
+.hero .eyebrow{color:var(--night-muted)}
+.live-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:#5FD3A8; margin-right:8px; vertical-align:1px; box-shadow:0 0 0 0 #5FD3A880; animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 10px #5FD3A800}100%{box-shadow:0 0 0 0 #5FD3A800}}
+.hero h1{font-weight:800; font-size:clamp(44px,8vw,96px); line-height:.95; letter-spacing:-.025em; max-width:12ch}
+.hero h1 em{font-style:normal; color:#7FD1C1}
+.hero .lede{font-size:clamp(17px,2vw,21px); color:var(--night-muted); max-width:56ch; margin:0}
+.boost{display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px 28px; align-items:end; margin-top:6px;
+  background:color-mix(in srgb, var(--night-2) 82%, transparent); border:1px solid var(--night-rule); border-radius:16px; padding:24px 26px; backdrop-filter:blur(6px)}
+.boost-num{font-family:var(--display); font-weight:800; font-size:clamp(64px,13vw,150px); line-height:.82; letter-spacing:-.035em; color:#F2C46D}
+.boost-txt{display:grid; gap:4px; padding-bottom:8px}
+.boost-txt b{font-family:var(--display); font-size:clamp(20px,2.6vw,28px); line-height:1.1}
+.boost-txt span{color:var(--night-muted); font-size:14.5px}
+.bars{grid-column:1/-1; display:grid; gap:10px; margin-top:12px}
+.bar-row{display:grid; grid-template-columns:150px minmax(0,1fr) 92px; gap:14px; align-items:center; font-size:14px}
+.bar-row .lbl{color:var(--night-muted)}
+.bar-row .val{font-family:var(--mono); text-align:right}
+.track{height:22px; border-radius:6px; background:#ffffff0d; display:flex; overflow:hidden}
+.seg{height:100%; width:0; transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+.seg.kas{background:var(--kas)}
+.seg.zk{background:repeating-linear-gradient(135deg,#7FD1C1 0 6px,#5FB8A8 6px 12px)}
+.asof{font-family:var(--mono); font-size:12px; color:var(--night-muted)}
+
+/* facts */
+.facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:1px; background:var(--rule);
+  border:1px solid var(--rule); border-radius:12px; overflow:hidden; margin-top:-34px; position:relative; z-index:2}
+.fact{background:var(--surface); padding:16px 18px; display:grid; gap:2px; align-content:start}
+.fact b{font-family:var(--display); font-size:24px; font-weight:700; line-height:1.15}
+.fact small{color:var(--muted); font-size:13px; line-height:1.4}
+
+/* charts */
+.card{background:var(--surface); border:1px solid var(--rule); border-radius:14px; padding:20px 20px 14px}
+.legend{display:flex; flex-wrap:wrap; gap:6px 20px; font-size:13.5px; color:var(--muted); margin-bottom:10px}
+.legend span{display:inline-flex; align-items:center; gap:8px}
+.legend i{width:18px; height:3px; border-radius:2px; display:inline-block}
+.legend i.dash{background:repeating-linear-gradient(90deg,currentColor 0 5px,transparent 5px 9px)!important; height:2px}
+.chart{position:relative; width:100%; height:360px}
+.chart svg{display:block; width:100%; height:100%; overflow:visible}
+.chart .axis text{font:11.5px var(--mono); fill:var(--muted)}
+.chart .grid line{stroke:var(--rule); stroke-width:1}
+.chart path.line{fill:none; stroke-width:2.4; stroke-linejoin:round; stroke-linecap:round}
+.chart path.area{opacity:.12}
+.chart .draw{stroke-dasharray:var(--len); stroke-dashoffset:var(--len)}
+.chart.in .draw{transition:stroke-dashoffset 2.2s cubic-bezier(.3,.7,.2,1); stroke-dashoffset:0}
+.tip{position:absolute; pointer-events:none; background:var(--ink); color:var(--paper); font-size:12.5px; line-height:1.45;
+  padding:8px 10px; border-radius:8px; white-space:nowrap; transform:translate(-50%,-110%); opacity:0; transition:opacity .15s}
+.tip b{font-family:var(--mono); font-weight:500}
+.note{font-size:13.5px; color:var(--muted); margin:10px 2px 0}
+.src-pills{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+.pill{font:500 12px/1 var(--mono); padding:7px 10px; border-radius:999px; border:1px solid var(--rule); color:var(--muted); background:var(--paper)}
+.pill.ok::before{content:"\25CF  "; color:#3AA676}
+.pill.off::before{content:"\25CF  "; color:var(--stamp)}
+
+/* calculator */
+.calc{display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:22px}
+.inputs{display:grid; gap:16px; align-content:start}
+.field{display:grid; gap:6px}
+.field label{font-size:13.5px; color:var(--muted); display:flex; justify-content:space-between; gap:10px}
+.field label output{font-family:var(--mono); color:var(--ink)}
+input[type=number],input[type=date]{font:500 16px var(--mono); padding:10px 12px; border-radius:8px; border:1px solid var(--rule); background:var(--paper); color:var(--ink); width:100%}
+input[type=range]{width:100%; accent-color:var(--accent)}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chip{font:500 13px/1 var(--body); padding:9px 13px; border-radius:999px; border:1px solid var(--rule); background:var(--paper); color:var(--ink); cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+table.earn{width:100%; border-collapse:collapse; font-size:15px}
+table.earn th,table.earn td{padding:10px 8px; border-bottom:1px solid var(--rule); text-align:right}
+table.earn th:first-child,table.earn td:first-child{text-align:left}
+table.earn thead th{font:500 12px var(--mono); letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+table.earn td{font-family:var(--mono); font-size:14px}
+table.earn td:first-child{font-family:var(--body); color:var(--muted)}
+table.earn tr.total td{font-weight:600; color:var(--ink); border-bottom:2px solid var(--ink)}
+.callout{margin-top:16px; padding:16px 18px; border-radius:12px; background:var(--accent-soft); display:grid; gap:2px}
+.callout b{font-family:var(--display); font-size:26px; line-height:1.1}
+.callout span{font-size:14px; color:var(--muted)}
+
+/* projection */
+.outcomes{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:14px}
+.outcome{border-radius:12px; padding:14px 16px; border:1px solid var(--rule); background:var(--paper); display:grid; gap:2px}
+.outcome small{font-size:12.5px; color:var(--muted)}
+.outcome b{font-family:var(--display); font-size:24px; line-height:1.15}
+.outcome.hold{border-color:var(--hold)} .outcome.hold b{color:var(--hold)}
+.outcome.sell b{color:var(--sell)}
+.verdict{margin-top:12px; font-size:15px}
+
+/* about */
+.about{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px}
+.vs{border:1px solid var(--rule); border-radius:14px; padding:20px; background:var(--surface); display:grid; gap:8px; align-content:start}
+.vs h3{font-size:22px}
+.vs p{margin:0; color:var(--muted); font-size:15px}
+.vs.me{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+.vs.me p{color:color-mix(in srgb,var(--paper) 78%,transparent)}
+.steps{counter-reset:s; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; list-style:none; padding:0; margin:0}
+.steps li{counter-increment:s; border-top:2px solid var(--ink); padding-top:14px; display:grid; gap:6px}
+.steps li::before{content:counter(s,decimal-leading-zero); font:500 12px var(--mono); color:var(--muted)}
+.steps b{font-family:var(--display); font-size:20px}
+.steps span{color:var(--muted); font-size:15px}
+footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule); color:var(--muted); font-size:13.5px; display:grid; gap:6px}
+
+.reveal{opacity:0; transform:translateY(26px); transition:opacity .9s ease, transform .9s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1; transform:none}
+
+@media (max-width:860px){
+  .calc{grid-template-columns:1fr}
+  .about,.steps{grid-template-columns:1fr}
+  .outcomes{grid-template-columns:1fr}
+  .chart{height:300px}
+}
+@media (max-width:520px){
+  .fact:last-child{grid-column:1/-1}
+  .boost{grid-template-columns:1fr; padding:20px}
+  .bar-row{grid-template-columns:96px minmax(0,1fr) 74px; gap:10px; font-size:13px}
+  .chart{height:260px}
+}
+@media (prefers-reduced-motion: reduce){
+  .reveal{opacity:1; transform:none; transition:none}
+  .chart .draw{stroke-dasharray:none; stroke-dashoffset:0}
+  .seg{transition:none}
+  .live-dot{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<header class="hero">
+  <canvas id="dag" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="eyebrow"><span class="live-dot"></span>ZKAS merged mining &middot; live from both networks</div>
+    <h1>Same hashrate. <em>Two rewards.</em></h1>
+    <p class="lede">Every Kaspa ASIC can mine ZKAS at the same time, with the same hashes and no extra power. Kaspa keeps paying you exactly what it did. ZKAS pays on top.</p>
+    <div class="boost" aria-live="polite">
+      <div class="boost-num num" id="boost">+0%</div>
+      <div class="boost-txt">
+        <b>more earned than mining Kaspa alone</b>
+        <span>Same machine, same power bill, at today's difficulty and prices.</span>
+      </div>
+      <div class="bars">
+        <div class="bar-row"><span class="lbl">Kaspa only</span><div class="track"><div class="seg kas" id="barKas1"></div></div><span class="val num" id="valKas">&ndash;</span></div>
+        <div class="bar-row"><span class="lbl">Kaspa + ZKAS</span><div class="track"><div class="seg kas" id="barKas2"></div><div class="seg zk" id="barZk"></div></div><span class="val num" id="valBoth">&ndash;</span></div>
+        <div class="asof" id="asof">Loading live data&hellip;</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="facts" aria-label="Live figures">
+    <div class="fact"><b class="num" id="fZh">&ndash;</b><small>ZKAS network hashrate</small></div>
+    <div class="fact"><b class="num" id="fShare">&ndash;</b><small>of Kaspa's hashrate mines ZKAS too</small></div>
+    <div class="fact"><b class="num" id="fPrice">&ndash;</b><small>ZKAS price</small></div>
+    <div class="fact"><b class="num" id="fReward">&ndash;</b><small>ZKAS per second to miners</small></div>
+    <div class="fact"><b class="num" id="fNext">&ndash;</b><small>until the next 5.6% reward step-down</small></div>
+  </section>
+
+  <section class="sec reveal" aria-labelledby="h-hash">
+    <div class="sec-head">
+      <div class="eyebrow">Since launch &middot; 26 July 2026</div>
+      <h2 id="h-hash">ZKAS hashrate, next to Kaspa's</h2>
+      <p>Measured from the chain's own cumulative work, not estimated from pool reports. The orange line is the share of all Kaspa hashrate that is also mining ZKAS.</p>
+    </div>
+    <div class="card">
+      <div class="legend">
+        <span style="color:var(--zkas)"><i style="background:var(--zkas)"></i>ZKAS hashrate</span>
+        <span style="color:var(--kas)"><i style="background:var(--kas)"></i>Kaspa hashrate</span>
+        <span style="color:var(--share)"><i class="dash" style="color:var(--share)"></i>ZKAS share of Kaspa (right axis)</span>
+      </div>
+      <div class="chart" id="chartHash"></div>
+      <div class="src-pills" id="srcPills"></div>
+      <p class="note" id="hashNote">Updated hourly from several sources, which are cross-checked against each other.</p>
+    </div>
+  </section>
+
+  <section class="sec reveal" aria-labelledby="h-price">
+    <div class="sec-head">
+      <div class="eyebrow">Since the first trade &middot; 23 August 2026</div>
+      <h2 id="h-price">ZKAS price</h2>
+      <p>The OTC market until NonKYC listed ZKAS on 25 September, then NonKYC's daily close. OTC prices were quoted in KAS and are converted at that day's KAS price.</p>
+    </div>
+    <div class="card">
+      <div class="legend">
+        <span style="color:var(--zkas)"><i style="background:var(--zkas)"></i>ZKAS / USD</span>
+        <span style="color:var(--muted)"><i class="dash" style="color:var(--muted)"></i>OTC period</span>
+      </div>
+      <div class="chart" id="chartPrice"></div>
+    </div>
+  </section>
+
+  <section class="sec reveal" id="calc" aria-labelledby="h-calc">
+    <div class="sec-head">
+      <div class="eyebrow">Your rig, today</div>
+      <h2 id="h-calc">What ZKAS adds to your machine</h2>
+      <p>Enter your hashrate and power. Earnings use each network's live difficulty, block reward and price. ZKAS miners receive 95% of the block reward; 5% funds development.</p>
+    </div>
+    <div class="calc">
+      <div class="card inputs">
+        <div class="field">
+          <label for="inH">Hashrate <output>TH/s</output></label>
+          <input type="number" id="inH" min="0.01" step="0.1" value="15">
+          <div class="chips" id="hChips">
+            <button class="chip" data-h="1">1 TH/s</button><button class="chip" data-h="6">6 TH/s</button>
+            <button class="chip" data-h="15" aria-pressed="true">15 TH/s</button><button class="chip" data-h="40">40 TH/s</button><button class="chip" data-h="100">100 TH/s</button>
+          </div>
+        </div>
+        <div class="field"><label for="inW">Power draw <output>watts</output></label><input type="number" id="inW" min="0" step="50" value="3400"></div>
+        <div class="field"><label for="inE">Electricity <output>$ per kWh</output></label><input type="number" id="inE" min="0" step="0.01" value="0.07"></div>
+      </div>
+      <div class="card">
+        <table class="earn">
+          <thead><tr><th>Per day</th><th>Kaspa only</th><th>Kaspa + ZKAS</th></tr></thead>
+          <tbody>
+            <tr><td>KAS mined</td><td class="num" id="tKas1"></td><td class="num" id="tKas2"></td></tr>
+            <tr><td>ZKAS mined</td><td class="num">&ndash;</td><td class="num" id="tZk"></td></tr>
+            <tr><td>Revenue</td><td class="num" id="tRev1"></td><td class="num" id="tRev2"></td></tr>
+            <tr><td>Power</td><td class="num" id="tPow1"></td><td class="num" id="tPow2"></td></tr>
+            <tr class="total"><td>Profit</td><td class="num" id="tPro1"></td><td class="num" id="tPro2"></td></tr>
+          </tbody>
+        </table>
+        <div class="callout"><b class="num" id="cMonth">&ndash;</b><span id="cMonthTxt">more per month from mining ZKAS alongside Kaspa</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec reveal" id="future" aria-labelledby="h-future">
+    <div class="sec-head">
+      <div class="eyebrow">Looking forward</div>
+      <h2 id="h-future">If ZKAS reaches your price, what is your mining worth?</h2>
+      <p>Pick a ZKAS price and a date. The chart follows your rig day by day to that date, with ZKAS's scheduled reward step-downs, and compares holding what you mine with selling it as you go.</p>
+    </div>
+    <div class="calc">
+      <div class="card inputs">
+        <div class="chips" id="scenChips">
+          <button class="chip" data-m="1">Flat</button><button class="chip" data-m="2" aria-pressed="true">ZKAS 2&times;</button>
+          <button class="chip" data-m="5">5&times;</button><button class="chip" data-m="10">10&times;</button><button class="chip" data-m="0.5">Half</button>
+        </div>
+        <div class="field"><label for="inP">ZKAS price on that date <output id="oP"></output></label><input type="number" id="inP" min="0" step="0.0001"></div>
+        <div class="field"><label for="inD">Date <output id="oD"></output></label><input type="range" id="inD" min="1" max="24" step="1" value="6"></div>
+        <div class="field"><label for="inK">KAS price on that date <output id="oK"></output></label><input type="number" id="inK" min="0" step="0.001"></div>
+        <div class="field"><label for="inG">ZKAS network hashrate growth <output id="oG"></output></label><input type="range" id="inG" min="-10" max="40" step="1" value="5"></div>
+        <p class="note" style="margin:0">Prices move evenly (in percentage terms) from today to your target. Uses the rig from the calculator above.</p>
+      </div>
+      <div class="card">
+        <div class="legend">
+          <span style="color:var(--hold)"><i style="background:var(--hold)"></i>Hold what you mine</span>
+          <span style="color:var(--sell)"><i style="background:var(--sell)"></i>Sell as you mine</span>
+          <span style="color:var(--base)"><i class="dash" style="color:var(--base)"></i>Kaspa only, held</span>
+        </div>
+        <div class="chart" id="chartFuture" style="height:320px"></div>
+        <div class="outcomes">
+          <div class="outcome hold"><small>Hold, value on the date</small><b class="num" id="oHold">&ndash;</b></div>
+          <div class="outcome sell"><small>Sell as mined, total</small><b class="num" id="oSell">&ndash;</b></div>
+          <div class="outcome"><small>Kaspa only, held</small><b class="num" id="oBase">&ndash;</b></div>
+        </div>
+        <p class="verdict" id="verdict"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec reveal" aria-labelledby="h-about">
+    <div class="sec-head">
+      <div class="eyebrow">What you are mining</div>
+      <h2 id="h-about">Private cash, built to be spent</h2>
+      <p>ZKAS takes the strongest privacy cryptography in production and puts it on a network fast enough to pay at a counter.</p>
+    </div>
+    <div class="about">
+      <div class="vs"><h3>Zcash</h3><p>The proof system ZKAS is built on. Strong privacy, but optional, and much of the chain still runs in the open.</p></div>
+      <div class="vs"><h3>Monero</h3><p>Private by default, on its own chain with its own miners and slower blocks.</p></div>
+      <div class="vs me"><h3>ZKAS</h3><p>Zcash's proofs, private for every payment, confirms in seconds, and secured by the same ASICs that secure Kaspa.</p></div>
+    </div>
+  </section>
+
+  <section class="sec reveal" aria-labelledby="h-start">
+    <div class="sec-head"><h2 id="h-start">Start merged mining</h2></div>
+    <ol class="steps">
+      <li><b>Keep your Kaspa setup</b><span>Same ASIC, same firmware. Nothing changes on the machine.</span></li>
+      <li><b>Point it at a merged-mining pool</b><span>For example <a href="https://mining-pool.zkas.info" rel="noopener">mining-pool.zkas.info</a>, with your ZKAS address and your KAS payout address.</span></li>
+      <li><b>Earn both</b><span>Kaspa rewards as before, ZKAS rewards on top.</span></li>
+    </ol>
+  </section>
+
+  <footer>
+    <span>Independent. Not affiliated with the ZKAS project or the Kaspa developers. Nothing here is investment advice: projections are scenarios you set, not forecasts.</span>
+    <span>Data: <a href="https://explorer.zkas.info">explorer.zkas.info</a>, <a href="https://mining-pool.zkas.info">mining-pool.zkas.info</a>, <a href="https://nonkyc.io">NonKYC</a>, <a href="https://api.kaspa.org">api.kaspa.org</a>, <a href="https://www.coingecko.com">CoinGecko</a>. Collected hourly by <a href="https://github.com/CryptoOdie/zkas-hashrate">github.com/CryptoOdie/zkas-hashrate</a>.</span>
+  </footer>
+</main>
+
+<script>
+"use strict";
+const HISTORY_URLS = ["https://raw.githubusercontent.com/CryptoOdie/zkas-hashrate/main/data/history.json", "history.json"];
+const GENESIS = 1785079572000;
+const SECONDS_PER_MONTH = 2629800;
+const ZKAS_STEP_S = SECONDS_PER_MONTH / 4;          // one reward step every ~7.6 days (halves every 3 months)
+const STEP = Math.pow(2, -1 / 12);                   // 5.61% per step
+const TAIL_SWITCH = GENESIS / 1000 + 24 * SECONDS_PER_MONTH; // floor 6 ZKAS/s until month 24, then 0.6
+const ZKAS_MINER_SHARE = 0.95, KASPA_BPS = 10, ZKAS_BPS = 1;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = id => document.getElementById(id);
+
+/* ---------- formatting ---------- */
+const usd = (v, d) => (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en-US", {minimumFractionDigits: d ?? (Math.abs(v) < 10 ? 2 : 0), maximumFractionDigits: d ?? (Math.abs(v) < 10 ? 2 : 0)});
+const price = v => "$" + (v < 0.01 ? v.toFixed(5) : v < 1 ? v.toFixed(4) : v.toFixed(2));
+const hr = h => h >= 1e18 ? (h / 1e18).toFixed(2) + " EH/s" : h >= 1e15 ? (h / 1e15).toFixed(1) + " PH/s" : (h / 1e12).toFixed(1) + " TH/s";
+const coins = v => v >= 100 ? Math.round(v).toLocaleString("en-US") : v.toFixed(2);
+const day = t => new Date(t).toLocaleDateString("en-US", {month: "short", day: "numeric"});
+const dayY = t => new Date(t).toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"});
+
+/* ---------- data ---------- */
+async function getJSON(url, ms = 12000) {
+  const c = new AbortController(); const t = setTimeout(() => c.abort(), ms);
+  try { const r = await fetch(url, {signal: c.signal, cache: "no-store"}); if (!r.ok) throw new Error(r.status); return await r.json(); }
+  finally { clearTimeout(t); }
+}
+async function loadHistory() {
+  for (const u of HISTORY_URLS) { try { return await getJSON(u); } catch (e) {} }
+  return null;
+}
+async function loadLive() {
+  const tries = {
+    dag: getJSON("https://explorer.zkas.info/api/info/blockdag"),
+    halving: getJSON("https://explorer.zkas.info/api/info/halving"),
+    pool: getJSON("https://mining-pool.zkas.info/api/stats"),
+    otc: getJSON("https://mining-pool.zkas.info/api/otc/price"),
+    kh: getJSON("https://api.kaspa.org/info/hashrate?stringOnly=false"),
+    kr: getJSON("https://api.kaspa.org/info/blockreward"),
+    kp: getJSON("https://api.kaspa.org/info/price"),
+  };
+  const keys = Object.keys(tries), res = await Promise.allSettled(Object.values(tries));
+  const out = {}; keys.forEach((k, i) => out[k] = res[i].status === "fulfilled" ? res[i].value : null);
+  return out;
+}
+
+/* the "now" state: live where possible, else the newest collected sample */
+function current(H, L) {
+  const s = H && H.samples && H.samples.length ? H.samples[H.samples.length - 1] : {zkas: {}, kaspa: {}, price: {}};
+  const zh = L.dag ? L.dag.difficulty * 2 : (s.zkas.difficulty || s.zkas.pool);
+  return {
+    live: !!(L.dag && L.otc && L.kh),
+    asOf: L.dag ? Date.now() : s.t,
+    zkasHashrate: zh,
+    poolHashrate: L.pool ? L.pool.networkHashrate : s.zkas.pool,
+    zkasReward: L.halving ? L.halving.currentAmount : s.zkas.reward,
+    nextReduction: L.halving ? L.halving.nextHalvingTimestamp : s.zkas.nextReductionTs,
+    zkasUsd: L.otc ? L.otc.zkasUsd : s.price.zkasUsd,
+    kasUsd: L.otc ? L.otc.kasUsd : (L.kp ? L.kp.price : s.price.kasUsd),
+    kaspaHashrate: L.kh ? L.kh.hashrate * 1e12 : s.kaspa.hashrate,
+    kaspaReward: L.kr ? L.kr.blockreward : s.kaspa.reward,
+  };
+}
+
+/* per-day earnings for hashrate h (H/s) */
+function earnings(C, h) {
+  const kasDay = h / (C.kaspaHashrate + h) * C.kaspaReward * KASPA_BPS * 86400;
+  const zkDay = h / (C.zkasHashrate + h) * C.zkasReward * ZKAS_BPS * ZKAS_MINER_SHARE * 86400;
+  return {kasDay, zkDay, kasUsd: kasDay * C.kasUsd, zkUsd: zkDay * C.zkasUsd};
+}
+
+/* ZKAS reward per second at unix time t (seconds), from the live amount and next step time */
+function zkasRewardAt(C, t) {
+  const n = t < C.nextReduction ? 0 : 1 + Math.floor((t - C.nextReduction) / ZKAS_STEP_S);
+  const curve = C.zkasReward * ZKAS_BPS * Math.pow(STEP, n);
+  return Math.max(curve, t < TAIL_SWITCH ? 6 : 0.6);
+}
+const kaspaRewardAt = (C, t0, t) => C.kaspaReward * KASPA_BPS * Math.pow(STEP, (t - t0) / SECONDS_PER_MONTH);
+
+/* ---------- series ---------- */
+function zkasSeries(H) {
+  const pts = [{ts: GENESIS, bw: 0n}];
+  for (const p of H.pruningPoints || []) {
+    try { pts.push({ts: p.ts, bw: BigInt(/^\d+$/.test(p.bw) ? p.bw : "0x" + p.bw)}); } catch (e) {}
+  }
+  pts.sort((a, b) => a.ts - b.ts);
+  const out = [];
+  for (let i = 1; i < pts.length; i++) {
+    const dt = (pts[i].ts - pts[i - 1].ts) / 1000; if (dt <= 0) continue;
+    out.push([(pts[i].ts + pts[i - 1].ts) / 2, Number(pts[i].bw - pts[i - 1].bw) / dt]);
+  }
+  const last = out.length ? out[out.length - 1][0] : GENESIS;
+  // Hourly samples since the last pruning point: average the explorer's three readings and the pool's.
+  const bucket = new Map();
+  for (const s of H.samples || []) {
+    if (s.t <= last) continue;
+    const vals = [s.zkas.difficulty, s.zkas.pulse, s.zkas.pool].filter(v => v > 0);
+    if (!vals.length) continue;
+    const k = Math.floor(s.t / 21600000);   // 6-hour buckets
+    const b = bucket.get(k) || [];
+    b.push(vals.reduce((a, v) => a + v, 0) / vals.length); bucket.set(k, b);
+  }
+  for (const [k, b] of [...bucket].sort((a, b) => a[0] - b[0])) out.push([k * 21600000 + 10800000, b.reduce((a, v) => a + v, 0) / b.length]);
+  return out;
+}
+function kaspaSeries(H) {
+  const out = (H.kaspaDaily || []).map(d => [Date.parse(d.d + "T12:00:00Z"), d.h]);
+  const lastT = out.length ? out[out.length - 1][0] : 0;
+  for (const s of H.samples || []) if (s.t > lastT + 3600000 && s.kaspa.hashrate) out.push([s.t, s.kaspa.hashrate]);
+  return out.sort((a, b) => a[0] - b[0]);
+}
+function interp(series, t) {
+  if (!series.length) return null;
+  if (t <= series[0][0]) return series[0][1];
+  for (let i = 1; i < series.length; i++) if (t <= series[i][0]) {
+    const [t0, v0] = series[i - 1], [t1, v1] = series[i]; return v0 + (v1 - v0) * (t - t0) / (t1 - t0);
+  }
+  return series[series.length - 1][1];
+}
+function priceSeries(H, C) {
+  const nk = (H.nonkycDaily || []).map(c => [c.t, c.c]);
+  const first = nk.length ? nk[0][0] : Infinity;
+  const kasUsd = (H.kasUsdDaily || []).map(p => [p.t, p.usd]);
+  const otc = (H.priceHistory || []).filter(p => p.t < first && p.kas > 0).map(p => [p.t, p.kas * (interp(kasUsd, p.t) || C.kasUsd)]);
+  const all = otc.concat(nk);
+  if (C.zkasUsd && (!all.length || Date.now() - all[all.length - 1][0] > 3600000)) all.push([Date.now(), C.zkasUsd]);
+  return {all, otcEnd: otc.length ? otc[otc.length - 1][0] : null};
+}
+
+/* ---------- chart ---------- */
+function niceMax(v) { const p = Math.pow(10, Math.floor(Math.log10(v || 1))); for (const m of [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= v) return m * p; return 10 * p; }
+function chart(el, cfg) {
+  const draw = () => {
+    const W = el.clientWidth, Hh = el.clientHeight, m = {l: 58, r: cfg.right ? 52 : 14, t: 12, b: 28};
+    const iw = W - m.l - m.r, ih = Hh - m.t - m.b;
+    const xs = cfg.series.flatMap(s => s.data.map(d => d[0]));
+    const x0 = cfg.x0 ?? Math.min(...xs), x1 = cfg.x1 ?? Math.max(...xs);
+    const lMax = niceMax(Math.max(...cfg.series.filter(s => !s.right).flatMap(s => s.data.map(d => d[1]))) * 1.06);
+    const lMin = Math.min(0, ...cfg.series.filter(s => !s.right).flatMap(s => s.data.map(d => d[1])));
+    const rMax = cfg.right ? niceMax(Math.max(...cfg.series.filter(s => s.right).flatMap(s => s.data.map(d => d[1]))) * 1.1) : 1;
+    const X = t => m.l + (t - x0) / ((x1 - x0) || 1) * iw;
+    const Y = (v, r) => m.t + ih - (r ? v / rMax : (v - lMin) / (lMax - lMin)) * ih;
+    let g = "";
+    for (let i = 0; i <= 4; i++) {
+      const v = lMin + (lMax - lMin) * i / 4, y = Y(v);
+      g += `<g class="grid"><line x1="${m.l}" x2="${W - m.r}" y1="${y}" y2="${y}"/></g><g class="axis"><text x="${m.l - 8}" y="${y + 4}" text-anchor="end">${cfg.fmtL(v)}</text>`;
+      if (cfg.right) g += `<text x="${W - m.r + 8}" y="${y + 4}">${cfg.fmtR(rMax * i / 4)}</text>`;
+      g += "</g>";
+    }
+    const ticks = Math.max(2, Math.min(7, Math.floor(iw / 110)));
+    for (let i = 0; i <= ticks; i++) { const t = x0 + (x1 - x0) * i / ticks; g += `<g class="axis"><text x="${X(t)}" y="${Hh - 6}" text-anchor="middle">${(cfg.fmtX || day)(t)}</text></g>`; }
+    if (cfg.band) g += `<rect x="${X(cfg.band[0])}" y="${m.t}" width="${Math.max(0, X(cfg.band[1]) - X(cfg.band[0]))}" height="${ih}" fill="var(--rule)" opacity=".35"/>`;
+    let paths = "";
+    cfg.series.forEach((s, i) => {
+      if (!s.data.length) return;
+      const d = s.data.map((p, j) => (j ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1], s.right).toFixed(1)).join("");
+      if (s.area) paths += `<path class="area" d="${d}L${X(s.data[s.data.length - 1][0])},${Y(lMin)}L${X(s.data[0][0])},${Y(lMin)}Z" fill="${s.color}"/>`;
+      paths += `<path class="line draw" id="${el.id}-l${i}" d="${d}" stroke="${s.color}" ${s.dash ? 'stroke-dasharray="6 5"' : ""}/>`;
+    });
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${cfg.label}">${g}${paths}<line id="${el.id}-x" y1="${m.t}" y2="${m.t + ih}" stroke="var(--muted)" stroke-dasharray="3 3" opacity="0"/></svg><div class="tip"></div>`;
+    el.querySelectorAll("path.draw").forEach(p => { if (p.getAttribute("stroke-dasharray")) { p.classList.remove("draw"); return; } const L = p.getTotalLength(); p.style.setProperty("--len", L); });
+    const tip = el.querySelector(".tip"), cross = el.querySelector(`#${el.id}-x`), svg = el.querySelector("svg");
+    const move = e => {
+      const r = svg.getBoundingClientRect(), px = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+      const t = x0 + (px - m.l) / iw * (x1 - x0); if (t < x0 || t > x1) return leave();
+      cross.setAttribute("x1", px); cross.setAttribute("x2", px); cross.setAttribute("opacity", 1);
+      tip.innerHTML = `${(cfg.fmtTipX || dayY)(t)}<br>` + cfg.series.filter(s => !s.noTip && s.data.length).map(s => {
+        const v = interp(s.data, t); return `<span style="color:${s.color}">&#9632;</span> ${s.name}: <b>${(s.fmt || cfg.fmtL)(v)}</b>`;
+      }).join("<br>");
+      tip.style.left = Math.min(Math.max(px, 90), W - 90) + "px"; tip.style.top = (m.t + 30) + "px"; tip.style.opacity = 1;
+    };
+    const leave = () => { tip.style.opacity = 0; cross.setAttribute("opacity", 0); };
+    svg.addEventListener("pointermove", move); svg.addEventListener("pointerleave", leave);
+    if (el.classList.contains("in") || reduce) requestAnimationFrame(() => el.classList.add("in"));
+  };
+  draw();
+  if (!el._ro) { let w = el.clientWidth; el._ro = new ResizeObserver(() => { if (el.clientWidth !== w) { w = el.clientWidth; draw(); } }); el._ro.observe(el); }
+  el._draw = draw;
+}
+
+/* ---------- page ---------- */
+let C = null, H = null;
+function animateNumber(el, to, fmt, ms = 1600) {
+  if (reduce) { el.textContent = fmt(to); return; }
+  const t0 = performance.now();
+  const step = now => { const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(to * e); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+  setTimeout(() => { el.textContent = fmt(to); }, ms + 100); // always land on the exact value
+}
+
+function renderHero() {
+  const e = earnings(C, 1e12);
+  const boost = e.zkUsd / e.kasUsd * 100;
+  animateNumber($("boost"), boost, v => "+" + Math.round(v) + "%");
+  const total = e.kasUsd + e.zkUsd, scale = 100 / total;
+  setTimeout(() => {
+    $("barKas1").style.width = e.kasUsd * scale + "%"; $("barKas2").style.width = e.kasUsd * scale + "%"; $("barZk").style.width = e.zkUsd * scale + "%";
+  }, 250);
+  $("valKas").textContent = "1.00×"; $("valBoth").textContent = (total / e.kasUsd).toFixed(2) + "×";
+  $("asof").textContent = (C.live ? "Live" : "Last collected") + " · " + new Date(C.asOf).toLocaleString("en-US", {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}) +
+    " · ZKAS " + price(C.zkasUsd) + ", KAS " + price(C.kasUsd);
+  $("fZh").textContent = hr(C.zkasHashrate);
+  $("fShare").textContent = (C.zkasHashrate / C.kaspaHashrate * 100).toFixed(1) + "%";
+  $("fPrice").textContent = price(C.zkasUsd);
+  $("fReward").textContent = (C.zkasReward * ZKAS_BPS * ZKAS_MINER_SHARE).toFixed(2);
+  const tick = () => { const s = Math.max(0, C.nextReduction - Date.now() / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
+    $("fNext").textContent = h >= 48 ? Math.round(h / 24) + " days" : `${h}h ${String(m).padStart(2, "0")}m`; };
+  tick(); setInterval(tick, 30000);
+}
+
+function renderHash() {
+  const z = zkasSeries(H), k = kaspaSeries(H);
+  if (C.zkasHashrate) z.push([Date.now(), C.zkasHashrate]);
+  if (C.kaspaHashrate) k.push([Date.now(), C.kaspaHashrate]);
+  const share = z.map(([t, v]) => { const kv = interp(k, t); return [t, kv ? v / kv * 100 : 0]; });
+  chart($("chartHash"), {
+    label: "ZKAS and Kaspa hashrate since launch, with ZKAS share of Kaspa", x0: GENESIS, x1: Date.now(), right: true,
+    fmtL: v => v >= 1e18 ? (v / 1e18).toFixed(2) + " EH" : Math.round(v / 1e15) + " PH", fmtR: v => Math.round(v) + "%",
+    series: [
+      {name: "Kaspa", data: k, color: "var(--kas)", fmt: hr},
+      {name: "ZKAS", data: z, color: "var(--zkas)", fmt: hr, area: true},
+      {name: "ZKAS share", data: share, color: "var(--share)", right: true, dash: true, fmt: v => v.toFixed(1) + "%"},
+    ],
+  });
+  const pills = [
+    ["explorer.zkas.info", !!(H.pruningPoints || []).length],
+    ["mining-pool.zkas.info", !!(H.samples || []).some(s => s.zkas.pool)],
+    ["api.kaspa.org", !!(H.kaspaDaily || []).length],
+  ];
+  const s = (H.samples || []).slice(-1)[0];
+  let agree = "";
+  if (s) { const v = [s.zkas.difficulty, s.zkas.pulse, s.zkas.pool].filter(x => x > 0);
+    if (v.length > 1) { const spread = (Math.max(...v) - Math.min(...v)) / Math.min(...v) * 100; agree = ` Latest readings from ${v.length} independent measurements agree within ${spread.toFixed(1)}%.`; } }
+  $("srcPills").innerHTML = pills.map(([n, ok]) => `<span class="pill ${ok ? "ok" : "off"}">${n}</span>`).join("");
+  $("hashNote").textContent = "Collected hourly and cross-checked." + agree + (H.updated ? " Last collection " + new Date(H.updated).toLocaleString("en-US", {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}) + "." : "");
+}
+
+function renderPrice() {
+  const {all, otcEnd} = priceSeries(H, C);
+  if (!all.length) { $("chartPrice").innerHTML = '<p class="note">Price history is unavailable right now.</p>'; return; }
+  chart($("chartPrice"), {
+    label: "ZKAS price in US dollars since the first trade", right: false, band: otcEnd ? [all[0][0], otcEnd] : null,
+    fmtL: v => "$" + (v < 0.01 ? v.toFixed(4) : v.toFixed(3)),
+    series: [{name: "ZKAS", data: all, color: "var(--zkas)", area: true, fmt: price}],
+  });
+}
+
+function rig() { return {h: Math.max(0, +$("inH").value || 0) * 1e12, w: Math.max(0, +$("inW").value || 0), e: Math.max(0, +$("inE").value || 0)}; }
+function renderCalc() {
+  const r = rig(), e = earnings(C, r.h), pow = r.w / 1000 * 24 * r.e;
+  $("tKas1").textContent = coins(e.kasDay); $("tKas2").textContent = coins(e.kasDay); $("tZk").textContent = coins(e.zkDay);
+  $("tRev1").textContent = usd(e.kasUsd); $("tRev2").textContent = usd(e.kasUsd + e.zkUsd);
+  $("tPow1").textContent = usd(-pow); $("tPow2").textContent = usd(-pow);
+  $("tPro1").textContent = usd(e.kasUsd - pow); $("tPro2").textContent = usd(e.kasUsd + e.zkUsd - pow);
+  $("cMonth").textContent = "+" + usd(e.zkUsd * 30.44, 0);
+  const p1 = e.kasUsd - pow, p2 = p1 + e.zkUsd;
+  $("cMonthTxt").textContent = p1 <= 0 && p2 > 0 ? "a month from ZKAS, which turns this rig from a loss into a profit" : "more per month from mining ZKAS alongside Kaspa";
+  renderFuture();
+}
+
+function renderFuture() {
+  const r = rig(), months = +$("inD").value, pz = Math.max(0, +$("inP").value || 0), pk = Math.max(0, +$("inK").value || 0), g = +$("inG").value / 100;
+  const t0 = Date.now() / 1000, days = Math.round(months * 30.44), end = t0 + days * 86400;
+  $("oD").textContent = dayY(end * 1000); $("oP").textContent = price(pz); $("oK").textContent = price(pk); $("oG").textContent = (g >= 0 ? "+" : "") + Math.round(g * 100) + "% / month";
+  const pow = r.w / 1000 * 24 * r.e;
+  let zk = 0, ks = 0, sold = 0, cost = 0;
+  const hold = [], sell = [], base = [];
+  for (let d = 0; d <= days; d++) {
+    const t = t0 + d * 86400, f = days ? d / days : 1;
+    const priceZ = C.zkasUsd * Math.pow((pz || C.zkasUsd) / C.zkasUsd, f), priceK = C.kasUsd * Math.pow((pk || C.kasUsd) / C.kasUsd, f);
+    if (d > 0) {
+      const zh = C.zkasHashrate * Math.pow(1 + g, (t - t0) / SECONDS_PER_MONTH);
+      const dz = r.h / (zh + r.h) * zkasRewardAt(C, t) * ZKAS_MINER_SHARE * 86400;
+      const dk = r.h / (C.kaspaHashrate + r.h) * kaspaRewardAt(C, t0, t) * 86400;
+      zk += dz; ks += dk; sold += dz * priceZ + dk * priceK; cost += pow;
+    }
+    const T = t * 1000;
+    hold.push([T, zk * priceZ + ks * priceK - cost]); sell.push([T, sold - cost]); base.push([T, ks * priceK - cost]);
+  }
+  chart($("chartFuture"), {
+    label: "Projected value of your mining, holding versus selling", x0: t0 * 1000, x1: end * 1000,
+    fmtL: v => Math.abs(v) >= 1000 ? (v < 0 ? "-$" : "$") + (Math.abs(v) / 1000).toFixed(Math.abs(v) >= 10000 ? 0 : 1) + "k" : usd(v, 0),
+    series: [
+      {name: "Kaspa only", data: base, color: "var(--base)", dash: true, fmt: v => usd(v, 0)},
+      {name: "Sell as mined", data: sell, color: "var(--sell)", fmt: v => usd(v, 0)},
+      {name: "Hold", data: hold, color: "var(--hold)", area: true, fmt: v => usd(v, 0)},
+    ],
+  });
+  const H1 = hold[hold.length - 1][1], S1 = sell[sell.length - 1][1], B1 = base[base.length - 1][1];
+  $("oHold").textContent = usd(H1, 0); $("oSell").textContent = usd(S1, 0); $("oBase").textContent = usd(B1, 0);
+  const better = H1 >= S1 ? "Holding" : "Selling as you mine";
+  $("verdict").innerHTML = `By ${dayY(end * 1000)} you would hold <b>${coins(zk)} ZKAS</b> and <b>${coins(ks)} KAS</b>. ` +
+    `${better} comes out <b>${usd(Math.abs(H1 - S1), 0)}</b> ahead in this scenario, and mining ZKAS alongside Kaspa adds <b>${usd(H1 - B1, 0)}</b> over Kaspa alone.`;
+}
+
+function setScenario(m) {
+  $("inP").value = +(C.zkasUsd * m).toPrecision(3); $("inK").value = +C.kasUsd.toPrecision(3);
+  document.querySelectorAll("#scenChips .chip").forEach(c => c.setAttribute("aria-pressed", +c.dataset.m === m));
+  renderFuture();
+}
+
+function wire() {
+  document.querySelectorAll("#hChips .chip").forEach(c => c.addEventListener("click", () => {
+    $("inH").value = c.dataset.h; $("inW").value = Math.round(c.dataset.h * 227 / 50) * 50 || 50;
+    document.querySelectorAll("#hChips .chip").forEach(x => x.setAttribute("aria-pressed", x === c)); renderCalc();
+  }));
+  ["inH", "inW", "inE"].forEach(id => $(id).addEventListener("input", () => { document.querySelectorAll("#hChips .chip").forEach(x => x.setAttribute("aria-pressed", x.dataset.h === $("inH").value)); renderCalc(); }));
+  document.querySelectorAll("#scenChips .chip").forEach(c => c.addEventListener("click", () => setScenario(+c.dataset.m)));
+  ["inP", "inK"].forEach(id => $(id).addEventListener("input", () => { document.querySelectorAll("#scenChips .chip").forEach(x => x.setAttribute("aria-pressed", false)); renderFuture(); }));
+  ["inD", "inG"].forEach(id => $(id).addEventListener("input", renderFuture));
+}
+
+/* scroll: progress bar, reveals, chart draw-in */
+function scrollFx() {
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); e.target.querySelectorAll(".chart").forEach(c => c.classList.add("in")); io.unobserve(e.target); } }), {threshold: .18});
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+  const p = $("progress");
+  const onScroll = () => { const h = document.documentElement; p.style.setProperty("--p", (h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight) * 100) + "%"); };
+  addEventListener("scroll", onScroll, {passive: true}); onScroll();
+}
+
+/* hero canvas: Kaspa blocks stream across the top lane; some carry a ZKAS block down with them */
+function heroCanvas() {
+  const cv = $("dag"), ctx = cv.getContext("2d");
+  let W, Hc, dpr, blocks = [], zk = [], last = 0, acc = 0, scroll = 0;
+  const size = () => { dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; Hc = cv.clientHeight; cv.width = W * dpr; cv.height = Hc * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+  size(); addEventListener("resize", size);
+  addEventListener("scroll", () => { scroll = Math.min(1, scrollY / Math.max(1, Hc)); }, {passive: true});
+  const laneK = () => 64, laneZ = () => 124 + 40 * scroll;
+  const spawn = x => {
+    const b = {x, y: laneK() + (Math.random() - .5) * 30, w: 16 + Math.random() * 6};
+    blocks.push(b);
+    if (Math.random() < .42) zk.push({x: b.x, y: laneZ() + (Math.random() - .5) * 22, from: b, born: performance.now()});
+  };
+  for (let x = -20; x < innerWidth + 40; x += 34) spawn(x);
+  const frame = now => {
+    const dt = Math.min(50, now - (last || now)); last = now;
+    const v = reduce ? 0 : dt * .045;
+    acc += v; while (acc > 34) { acc -= 34; spawn(-24); }
+    ctx.clearRect(0, 0, W, Hc);
+    ctx.lineWidth = 1;
+    for (const b of blocks) b.x += v;
+    for (let i = 1; i < blocks.length; i++) { const a = blocks[i - 1], b = blocks[i];
+      ctx.strokeStyle = "rgba(120,169,214,.18)"; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x + b.w, b.y); ctx.stroke(); }
+    for (const z of zk) {
+      z.x = z.from.x; const age = Math.min(1, (now - z.born) / 900);
+      ctx.strokeStyle = `rgba(127,209,193,${.35 * age})`; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(z.from.x + 8, z.from.y + 8); ctx.lineTo(z.x + 8, z.y); ctx.stroke(); ctx.setLineDash([]);
+    }
+    for (const b of blocks) { ctx.fillStyle = "rgba(120,169,214,.30)"; ctx.strokeStyle = "rgba(120,169,214,.55)"; ctx.fillRect(b.x, b.y, b.w, 14); ctx.strokeRect(b.x + .5, b.y + .5, b.w - 1, 13); }
+    for (const z of zk) { const age = Math.min(1, (now - z.born) / 900);
+      ctx.save(); ctx.globalAlpha = .25 + .6 * age; ctx.fillStyle = "#7FD1C1"; ctx.fillRect(z.x, z.y, 16, 14);
+      ctx.fillStyle = "#0E1418"; for (let k = -14; k < 16; k += 5) { ctx.fillRect(z.x + k + 5, z.y, 1.6, 14); } ctx.restore(); }
+    blocks = blocks.filter(b => b.x < W + 40); zk = zk.filter(z => z.x < W + 40);
+    ctx.font = "500 10.5px IBM Plex Mono, monospace"; ctx.fillStyle = "rgba(147,163,160,.75)"; ctx.textAlign = "right";
+    ctx.fillText("KASPA", W - 20, laneK() - 22); ctx.fillText("ZKAS, SAME WORK", W - 20, laneZ() + 32); ctx.textAlign = "left";
+    if (!reduce) requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+(async function main() {
+  heroCanvas(); scrollFx(); wire();
+  const [hist, live] = await Promise.all([loadHistory(), loadLive()]);
+  H = hist || {pruningPoints: [], samples: [], kaspaDaily: []};
+  C = current(H, live);
+  if (!C.zkasHashrate || !C.kaspaHashrate || !C.zkasUsd || !C.kasUsd) { $("asof").textContent = "Live data is unavailable right now. Try again in a minute."; return; }
+  renderHero(); renderHash(); renderPrice();
+  setScenario(2); renderCalc();
+  setInterval(async () => { const L = await loadLive(); const n = current(H, L); if (n.zkasHashrate && n.zkasUsd) { C = n; renderHero(); renderCalc(); } }, 120000);
+})();
+</script>
+</body>
+</html>
