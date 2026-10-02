@@ -116,6 +116,24 @@ def main():
         merged.update({p["t"]: {"t": p["t"], "kas": p["kas"]} for p in prices})
         data["priceHistory"] = sorted(merged.values(), key=lambda p: p["t"])
 
+    # Every OTC desk trade (Discord and Telegram), from the first one on 23 August 2026. Stored compactly
+    # as [timestamp ms, price in KAS, ZKAS amount]; fetched incrementally from the newest one held.
+    trades = data.get("otcTrades", [])
+    since = trades[-1][0] + 1 if trades else 0
+    for _ in range(200):
+        page = get(f"https://mining-pool.zkas.info/api/otc/trades?since={since}")
+        if not page or not page.get("trades"):
+            break
+        for x in page["trades"]:
+            try:
+                trades.append([int(x["ts"]), float(x["price"]), float(x["zkas"])])
+            except (KeyError, ValueError):
+                pass
+        if not page.get("next") or page["next"] <= since:
+            break
+        since = page["next"]
+    data["otcTrades"] = sorted({t[0]: t for t in trades}.values())
+
     # ZKAS/USDT daily candles from NonKYC, the main exchange (listed 25 September 2026).
     from_s, to_s = GENESIS_MS // 1000, now // 1000
     candles = get(f"https://api.nonkyc.io/api/v2/market/candles?symbol=ZKAS_USDT&resolution=1440&from={from_s}&to={to_s}")

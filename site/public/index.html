@@ -9,10 +9,10 @@
 <meta property="og:description" content="What merged-mining ZKAS adds to a Kaspa miner, live. Hashrate and price since launch, plus a hold-vs-sell profitability planner.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://zkas-mining.web.app/">
-<meta property="og:image" content="https://zkas-mining.web.app/og.png">
+<meta property="og:image" content="https://zkas-mining.web.app/og.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta name="twitter:image" content="https://zkas-mining.web.app/og.png">
+<meta name="twitter:image" content="https://zkas-mining.web.app/og.png?v=2">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -246,18 +246,19 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
   <section class="sec reveal" aria-labelledby="h-price">
     <div class="sec-head">
       <div class="eyebrow">Since the first trade &middot; 23 August 2026</div>
-      <h2 id="h-price">ZKAS price</h2>
-      <p>The OTC market until NonKYC listed ZKAS on 25 September, then NonKYC's daily close. OTC prices were quoted in KAS and are converted at that day's KAS price.</p>
+      <h2 id="h-price">ZKAS price, in dollars</h2>
+      <p>Every trade on the community OTC desk since the very first one, priced in KAS and converted at that day's KAS price, next to the exchange price since ZKAS listed on NonKYC on 25 September.</p>
     </div>
     <div class="card">
       <div class="card-top">
         <div class="legend">
-          <span style="color:var(--zkas)"><i style="background:var(--zkas)"></i>ZKAS / USD</span>
-          <span style="color:var(--muted)"><i class="dash" style="color:var(--muted)"></i>OTC period</span>
+          <span style="color:var(--zkas)"><i style="background:var(--zkas)"></i>OTC desk <b class="num" id="pOtc"></b></span>
+          <span style="color:var(--kas)"><i class="dash" style="color:var(--kas)"></i>Exchanges <b class="num" id="pEx"></b></span>
         </div>
         <div class="ranges" role="group" aria-label="Time range" data-for="price"></div>
       </div>
       <div class="chart" id="chartPrice"></div>
+      <p class="note" id="priceNote"></p>
     </div>
   </section>
 
@@ -483,13 +484,23 @@ function interp(series, t) {
   return series[series.length - 1][1];
 }
 function priceSeries(H, C) {
-  const nk = (H.nonkycDaily || []).map(c => [c.t, c.c]);
-  const first = nk.length ? nk[0][0] : Infinity;
   const kasUsd = (H.kasUsdDaily || []).map(p => [p.t, p.usd]);
-  const otc = (H.priceHistory || []).filter(p => p.t < first && p.kas > 0).map(p => [p.t, p.kas * (interp(kasUsd, p.t) || C.kasUsd)]);
-  const all = otc.concat(nk);
-  if (C.zkasUsd && (!all.length || Date.now() - all[all.length - 1][0] > 3600000)) all.push([Date.now(), C.zkasUsd]);
-  return {all, otcEnd: otc.length ? otc[otc.length - 1][0] : null};
+  const kasAt = t => interp(kasUsd, t) || C.kasUsd;
+  // OTC desk: volume-weighted price of each day's trades (quoted in KAS), in dollars at that day's KAS price.
+  const days = new Map();
+  for (const [t, p, q] of H.otcTrades || []) {
+    if (!(p > 0 && q > 0)) continue;
+    const d = Math.floor(t / 86400000) * 86400000 + 43200000, a = days.get(d) || [0, 0];
+    a[0] += p * q; a[1] += q; days.set(d, a);
+  }
+  const otc = [...days].sort((a, b) => a[0] - b[0]).map(([d, [pq, q]]) => [Math.min(d, Date.now()), pq / q * kasAt(d)]);
+  const trades = (H.otcTrades || []).filter(x => x[1] > 0);
+  const lastOtc = trades.length ? trades[trades.length - 1] : null;
+  if (lastOtc) otc.push([Math.max(lastOtc[0], otc.length ? otc[otc.length - 1][0] + 1 : 0), lastOtc[1] * C.kasUsd]);
+  // Exchanges: NonKYC daily close, then the live exchange price.
+  const ex = (H.nonkycDaily || []).map(c => [c.t + 43200000, c.c]).filter(p => p[0] < Date.now());
+  if (C.zkasUsd) ex.push([Date.now(), C.zkasUsd]);
+  return {otc, ex, otcNow: lastOtc ? lastOtc[1] * C.kasUsd : null, otcKas: lastOtc ? lastOtc[1] : null, trades: trades.length};
 }
 
 /* ---------- chart ---------- */
@@ -529,7 +540,7 @@ function chart(el, cfg) {
       const r = svg.getBoundingClientRect(), px = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
       const t = x0 + (px - m.l) / iw * (x1 - x0); if (t < x0 || t > x1) return leave();
       cross.setAttribute("x1", px); cross.setAttribute("x2", px); cross.setAttribute("opacity", 1);
-      tip.innerHTML = `${(cfg.fmtTipX || dayY)(t)}<br>` + cfg.series.filter(s => !s.noTip && s.data.length).map(s => {
+      tip.innerHTML = `${(cfg.fmtTipX || dayY)(t)}<br>` + cfg.series.filter(s => !s.noTip && s.data.length && t >= s.data[0][0] - 43200000).map(s => {
         const v = interp(s.data, t); return `<span style="color:${s.color}">&#9632;</span> ${s.name}: <b>${(s.fmt || cfg.fmtL)(v)}</b>`;
       }).join("<br>");
       tip.style.left = Math.min(Math.max(px, 90), W - 90) + "px"; tip.style.top = (m.t + 30) + "px"; tip.style.opacity = 1;
@@ -620,14 +631,22 @@ function renderHash() {
 }
 
 function renderPrice() {
-  const {all, otcEnd} = priceSeries(H, C);
-  if (!all.length) { $("chartPrice").innerHTML = '<p class="note">Price history is unavailable right now.</p>'; return; }
-  if (!document.querySelector('.ranges[data-for="price"] button')) buildRanges("price", all[0][0], renderPrice);
-  const x0 = rangeStart("price", all[0][0]), data = clip(all, x0);
+  const {otc, ex, otcNow, otcKas, trades} = priceSeries(H, C);
+  if (!otc.length && !ex.length) { $("chartPrice").innerHTML = '<p class="note">Price history is unavailable right now.</p>'; return; }
+  const first = Math.min(otc.length ? otc[0][0] : Infinity, ex.length ? ex[0][0] : Infinity);
+  if (!document.querySelector('.ranges[data-for="price"] button')) buildRanges("price", first, renderPrice);
+  const x0 = rangeStart("price", first);
+  if (otcNow) $("pOtc").textContent = price(otcNow);
+  if (C.zkasUsd) $("pEx").textContent = price(C.zkasUsd);
+  $("priceNote").textContent = `${trades.toLocaleString("en-US")} OTC trades since 23 August.` + (otcKas ? ` Last OTC trade ${otcKas.toFixed(4)} KAS.` : "") +
+    " Earnings on this page use the exchange price, the lower of the two.";
   chart($("chartPrice"), {
-    label: "ZKAS price in US dollars", right: false, x0, x1: Date.now(), band: otcEnd && otcEnd > x0 ? [x0, otcEnd] : null,
+    label: "ZKAS price in US dollars on the OTC desk and on exchanges", right: false, x0, x1: Date.now(),
     fmtL: v => "$" + (v < 0.01 ? v.toFixed(4) : v.toFixed(3)),
-    series: [{name: "ZKAS", data, color: "var(--zkas)", area: true, fmt: price}],
+    series: [
+      {name: "Exchanges", data: clip(ex, x0), color: "var(--kas)", dash: true, fmt: price},
+      {name: "OTC desk", data: clip(otc, x0), color: "var(--zkas)", area: true, fmt: price},
+    ],
   });
 }
 
