@@ -298,11 +298,11 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     <div class="calc">
       <div class="card inputs">
         <div class="field">
-          <label for="inH">Hashrate <output>TH/s</output></label>
+          <label for="inH">Hashrate <output id="oH">TH/s</output></label>
           <input type="number" id="inH" min="0.1" step="1" value="20">
           <div class="chips" id="hChips">
             <button class="chip" data-h="20" aria-pressed="true">20 TH/s</button><button class="chip" data-h="100">100 TH/s</button>
-            <button class="chip" data-h="500">500 TH/s</button><button class="chip" data-h="1000">1,000 TH/s</button>
+            <button class="chip" data-h="500">500 TH/s</button><button class="chip" data-h="1000">1 PH/s</button>
           </div>
         </div>
         <div class="field"><label for="inW">Power draw <output>watts</output></label><input type="number" id="inW" min="0" step="100" value="4600"></div>
@@ -755,6 +755,7 @@ function renderCap() {
 function rig() { return {h: Math.max(0, +$("inH").value || 0) * 1e12, w: Math.max(0, +$("inW").value || 0), e: Math.max(0, +$("inE").value || 0)}; }
 function renderCalc() {
   const r = rig(), e = earnings(C, r.h), pow = r.w / 1000 * 24 * r.e;
+  $("oH").textContent = r.h >= 1e15 ? "TH/s · " + (r.h / 1e15).toLocaleString("en-US", {maximumFractionDigits: 2}) + " PH/s" : "TH/s";
   $("tKas1").textContent = coins(e.kasDay); $("tKas2").textContent = coins(e.kasDay); $("tZk").textContent = coins(e.zkDay);
   $("tRev1").textContent = usd(e.kasUsd); $("tRev2").textContent = usd(e.kasUsd + e.zkUsd);
   $("tPow1").textContent = usd(-pow); $("tPow2").textContent = usd(-pow) + " (same)";
@@ -787,7 +788,7 @@ function renderFuture() {
   $("verdict").innerHTML = target > C.zkasUsd
     ? `Holding comes out <b>${usd(H1 - S1, 0)}</b> ahead. That's on top of everything your rig already earns from Kaspa, with no extra power.`
     : target < C.zkasUsd ? `Selling as you mine comes out <b>${usd(S1 - H1, 0)}</b> ahead if the price falls.` : `At today's price, holding and selling end up about the same.`;
-  $("fwdNote").textContent = `Uses your rig from above (${+$("inH").value || 0} TH/s), over ${when}. Assumes ZKAS network hashrate grows 5% a month and the price moves steadily from today's ${price(C.zkasUsd)} to your target. Includes ZKAS's scheduled reward step-downs.`;
+  $("fwdNote").textContent = `Uses your rig from above (${hr(r.h)}), over ${when}. Assumes ZKAS network hashrate grows 5% a month and the price moves steadily from today's ${price(C.zkasUsd)} to your target. Includes ZKAS's scheduled reward step-downs.`;
   chart($("chartFuture"), {
     label: "Value of the ZKAS you mine: holding versus selling", x0: t0 * 1000, x1: end * 1000,
     fmtL: v => v >= 1000 ? "$" + (v / 1000).toFixed(v >= 10000 ? 0 : 1) + "k" : usd(v, 0),
