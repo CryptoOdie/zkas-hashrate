@@ -62,12 +62,14 @@ h2{font-weight:700; font-size:clamp(30px,4.4vw,46px); line-height:1.04}
 /* hero */
 .hero{background:var(--night); color:var(--night-ink); position:relative; overflow:hidden; isolation:isolate}
 .hero canvas{position:absolute; inset:0; width:100%; height:100%; z-index:-1; opacity:.9}
-.hero .wrap{padding-block:196px 64px; display:grid; gap:26px; min-height:min(92vh,860px); align-content:center}
+.hero > .wrap{padding-block:172px 64px; display:grid; gap:26px; min-height:min(92vh,860px); align-content:center}
 .hero .eyebrow{color:var(--night-muted)}
 .live-dot{display:inline-block; width:8px; height:8px; border-radius:50%; background:#5FD3A8; margin-right:8px; vertical-align:1px; box-shadow:0 0 0 0 #5FD3A880; animation:pulse 2s infinite}
 @keyframes pulse{70%{box-shadow:0 0 0 10px #5FD3A800}100%{box-shadow:0 0 0 0 #5FD3A800}}
-.tagline{margin:0; justify-self:start; font-size:clamp(15px,1.8vw,18px); color:var(--night-ink); background:#ffffff0f; border:1px solid var(--night-rule); border-radius:999px; padding:8px 16px}
-.tagline b{font-family:var(--display); color:#7FD1C1; letter-spacing:.02em}
+.topbar{position:relative; z-index:2; background:#0b1013e6; border-bottom:1px solid var(--night-rule); backdrop-filter:blur(8px)}
+.topbar-in{display:flex; align-items:center; gap:14px; padding-block:14px; min-height:68px}
+.logo{height:40px; width:auto; display:block; flex:none}
+.tagline{margin:0; font-family:var(--display); font-weight:700; font-size:clamp(15px,2vw,20px); line-height:1.25; color:var(--night-ink)}
 .hero h1{font-weight:800; font-size:clamp(44px,8vw,96px); line-height:.95; letter-spacing:-.025em; max-width:12ch}
 .hero h1 em{font-style:normal; color:#7FD1C1}
 .hero .lede{font-size:clamp(17px,2vw,21px); color:var(--night-muted); max-width:56ch; margin:0}
@@ -215,9 +217,14 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
 
 <header class="hero">
   <canvas id="dag" aria-hidden="true"></canvas>
+  <nav class="topbar" aria-label="ZKAS">
+    <div class="wrap topbar-in">
+      <img src="logo.png" alt="ZKAS" class="logo" onerror="this.remove()">
+      <p class="tagline">Private digital cash, built to actually be spent, unlike Zcash and Monero</p>
+    </div>
+  </nav>
   <div class="wrap">
     <div class="eyebrow"><span class="live-dot"></span>ZKAS merged mining &middot; live from both networks</div>
-    <p class="tagline"><b>ZKAS</b> &middot; private digital cash, built to actually be spent, unlike Zcash and Monero</p>
     <h1>Same hashrate. <em>Two rewards.</em></h1>
     <p class="lede">ZKAS payments leave no public record of who paid whom or how much, and confirm in seconds. Every Kaspa ASIC can mine it at the same time as Kaspa, with the same hashes and no extra power. Kaspa keeps paying you exactly what it did. ZKAS pays on top.</p>
     <div class="boost" aria-live="polite">
@@ -834,7 +841,7 @@ function heroCanvas() {
   const size = () => { dpr = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; Hc = cv.clientHeight; cv.width = W * dpr; cv.height = Hc * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
   size(); addEventListener("resize", size);
   addEventListener("scroll", () => { scroll = Math.min(1, scrollY / Math.max(1, Hc)); }, {passive: true});
-  const laneK = () => 64, laneZ = () => 124 + 40 * scroll;
+  const laneK = () => 120, laneZ = () => 180 + 40 * scroll;
   const spawn = x => {
     const b = {x, y: laneK() + (Math.random() - .5) * 30, w: 16 + Math.random() * 6};
     blocks.push(b);
