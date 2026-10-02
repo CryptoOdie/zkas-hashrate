@@ -771,34 +771,36 @@ function renderCalc() {
 
 let fwdMonths = 6;
 function renderFuture() {
+  // Always one full year of mining, so every choice is compared over the same time. The price climbs
+  // steadily to the target by the chosen date and stays there for the rest of the year.
   const r = rig(), target = Math.max(0, +$("inP").value || 0) || C.zkasUsd, growth = 0.05;
-  const t0 = Date.now() / 1000, days = Math.round(fwdMonths * 30.44), end = t0 + days * 86400;
-  let zk = 0, sold = 0, emitted = 0;
+  const t0 = Date.now() / 1000, days = 365, reach = Math.round(fwdMonths * 30.44), end = t0 + days * 86400;
+  let zk = 0, sold = 0, emittedByReach = 0;
   const hold = [], sell = [];
   for (let d = 0; d <= days; d++) {
-    const t = t0 + d * 86400, f = days ? d / days : 1, p = C.zkasUsd * Math.pow(target / C.zkasUsd, f);
+    const t = t0 + d * 86400, f = Math.min(1, d / reach), p = C.zkasUsd * Math.pow(target / C.zkasUsd, f);
     if (d > 0) {
       const zh = C.zkasHashrate * Math.pow(1 + growth, (t - t0) / SECONDS_PER_MONTH);
       const dz = r.h / (zh + r.h) * zkasRewardAt(C, t) * ZKAS_MINER_SHARE * 86400;
-      zk += dz; sold += dz * p; emitted += zkasRewardAt(C, t) * 86400;
+      zk += dz; sold += dz * p;
+      if (d <= reach) emittedByReach += zkasRewardAt(C, t) * 86400;
     }
     hold.push([t * 1000, zk * p]); sell.push([t * 1000, sold]);
   }
-  const H1 = zk * target, S1 = sold;
+  const H1 = zk * target, S1 = sold, when = fwdMonths === 12 ? "a year" : fwdMonths + " months";
   if (C.supply) {
-    const sup = C.supply + emitted, cap = target * sup;
-    $("fMcap").innerHTML = `That's a market cap of <b class="num">${bigUsd(cap)}</b>` +
-      ` with ${(sup / 1e6).toFixed(0)}M ZKAS in circulation by then. Today it's ${bigUsd(C.zkasUsd * C.supply)}.`;
+    const sup = C.supply + emittedByReach;
+    $("fMcap").innerHTML = `That's a market cap of <b class="num">${bigUsd(target * sup)}</b>` +
+      ` with ${(sup / 1e6).toFixed(0)}M ZKAS in circulation then. Today it's ${bigUsd(C.zkasUsd * C.supply)}.`;
   }
-  $("oHold").textContent = usd(H1, 0); $("oHoldSub").textContent = `${coins(zk)} ZKAS at ${price(target)}`;
-  $("oSell").textContent = usd(S1, 0); $("oSellSub").textContent = "sold along the way as the price climbs";
-  const when = fwdMonths === 12 ? "a year" : fwdMonths + " months";
+  $("oHold").textContent = usd(H1, 0); $("oHoldSub").textContent = `${coins(zk)} ZKAS after a year, at ${price(target)}`;
+  $("oSell").textContent = usd(S1, 0); $("oSellSub").textContent = `sold day by day over the year`;
   $("verdict").innerHTML = target > C.zkasUsd
-    ? `Holding comes out <b>${usd(H1 - S1, 0)}</b> ahead. That's on top of everything your rig already earns from Kaspa, with no extra power.`
+    ? `After a year of mining, holding comes out <b>${usd(H1 - S1, 0)}</b> ahead. The sooner the price gets there, the more selling earns too. All on top of what your rig already earns from Kaspa, with no extra power.`
     : target < C.zkasUsd ? `Selling as you mine comes out <b>${usd(S1 - H1, 0)}</b> ahead if the price falls.` : `At today's price, holding and selling end up about the same.`;
-  $("fwdNote").textContent = `Uses your rig from above (${hr(r.h)}), over ${when}. Assumes ZKAS network hashrate grows 5% a month and the price moves steadily from today's ${price(C.zkasUsd)} to your target. Includes ZKAS's scheduled reward step-downs.`;
+  $("fwdNote").textContent = `One year of mining with your rig from above (${hr(r.h)}). The price climbs steadily from today's ${price(C.zkasUsd)} to your target in ${when}, then stays there. Assumes ZKAS network hashrate grows 5% a month. Includes ZKAS's scheduled reward step-downs.`;
   chart($("chartFuture"), {
-    label: "Value of the ZKAS you mine: holding versus selling", x0: t0 * 1000, x1: end * 1000,
+    label: "Value of a year of ZKAS mining: holding versus selling", x0: t0 * 1000, x1: end * 1000,
     fmtL: v => v >= 1000 ? "$" + (v / 1000).toFixed(v >= 10000 ? 0 : 1) + "k" : usd(v, 0),
     series: [
       {name: "Sell as you mine", data: sell, color: "var(--sell)", fmt: v => usd(v, 0)},
