@@ -257,12 +257,12 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
         <div class="ranges" role="group" aria-label="Time range" data-for="price"></div>
       </div>
       <div class="chart" id="chartPrice"></div>
-      <p class="note">Hourly exchange price (NonKYC and Neoxa, weighted by volume; CoinGecko for any hour neither traded), with exchange volume. Dashed section, before the 14 September listing: estimated.</p>
+      <p class="note">Hourly exchange price (NonKYC and Neoxa, weighted by volume; CoinGecko for any hour neither traded), with exchange volume. Before the 14 September listing: estimated.</p>
     </div>
     <div class="card" style="margin-top:16px">
       <div class="card-top">
         <div class="legend">
-          <span style="color:var(--accent);flex-direction:column;align-items:flex-start;gap:2px"><span style="display:inline-flex;align-items:center;gap:8px"><i style="background:var(--accent)"></i>ZKAS market cap <b class="num" id="mNow"></b></span><span class="num" id="mSub" style="color:var(--muted);font-size:13px;padding-left:26px"></span></span>
+          <span style="color:var(--zkas);flex-direction:column;align-items:flex-start;gap:2px"><span style="display:inline-flex;align-items:center;gap:8px"><i style="background:var(--zkas)"></i>ZKAS market cap <b class="num" id="mNow"></b></span><span class="num" id="mSub" style="color:var(--muted);font-size:13px;padding-left:26px"></span></span>
         </div>
         <div class="ranges" role="group" aria-label="Time range" data-for="mcap"></div>
       </div>
@@ -710,10 +710,7 @@ function renderPrice() {
     label: "ZKAS price in US dollars since launch, with exchange volume", right: false, x0, x1: Date.now(), zoom: true,
     bars: [...bucket], barStep: step, fmtTipX: span <= 32 * 86400000 ? when : dayY,
     fmtL: v => "$" + (v < 0.001 ? v.toFixed(5) : v < 0.01 ? v.toFixed(4) : v.toFixed(3)),
-    series: [
-      {name: "Estimate", data: clip(est, x0), color: "var(--zkas)", dash: true, area: true, fmt: v => price(v) + " (est.)", tipBefore: firstListed},
-      {name: "ZKAS", data: clip(series, x0), color: "var(--zkas)", area: true, fmt: price},
-    ],
+    series: [{name: "ZKAS", data: clip(est.slice(0, -1).concat(series), x0), color: "var(--zkas)", area: true, fmt: price}],
   });
 }
 
@@ -744,10 +741,7 @@ function renderCap() {
   chart($("chartCap"), {
     label: "ZKAS market capitalisation in US dollars since launch", right: false, x0, x1: Date.now(), zoom: true,
     fmtTipX: span <= 32 * 86400000 ? when : dayY, fmtL: bigUsd,
-    series: [
-      {name: "Market cap (est.)", data: clip(capEst, x0), color: "var(--accent)", dash: true, area: true, fmt: bigUsd, tipBefore: firstListed},
-      {name: "Market cap", data: clip(cap, x0), color: "var(--accent)", area: true, fmt: bigUsd},
-    ],
+    series: [{name: "Market cap", data: clip(capEst.slice(0, -1).concat(cap), x0), color: "var(--zkas)", area: true, fmt: bigUsd}],
   });
 }
 
