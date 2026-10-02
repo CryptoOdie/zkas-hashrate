@@ -193,7 +193,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
   .chart{height:300px}
 }
 @media (max-width:520px){
-  .fact:last-child{grid-column:1/-1}
+  .fact:last-child:nth-child(odd){grid-column:1/-1}
   .boost{grid-template-columns:1fr; padding:20px}
   .bar-row{grid-template-columns:96px minmax(0,1fr) 74px; gap:10px; font-size:13px}
   .chart{height:260px}
@@ -237,6 +237,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     <div class="fact"><b class="num" id="fPrice">&ndash;</b><small>ZKAS price<br><span class="num" id="fCap"></span></small></div>
     <div class="fact"><b class="num" id="fReward">&ndash;</b><small>ZKAS per second to miners</small></div>
     <div class="fact"><b class="num" id="fNext">&ndash;</b><small>until the next 5.6% reward step-down</small></div>
+    <div class="fact" style="background:var(--accent-soft)"><b class="num" style="color:var(--accent)">$0</b><small>extra power cost to add ZKAS. Same hashes, same watts.</small></div>
   </section>
 
   <section class="sec reveal" aria-labelledby="h-hash">
@@ -365,7 +366,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     <ol class="steps">
       <li><b>Keep your Kaspa setup</b><span>Same ASIC, same firmware. Nothing changes on the machine.</span></li>
       <li><b>Point it at a merged-mining pool</b><span>For example <a href="https://mining-pool.zkas.info" rel="noopener">mining-pool.zkas.info</a>, with your ZKAS address and your KAS payout address.</span></li>
-      <li><b>Earn both</b><span>Kaspa rewards as before, ZKAS rewards on top.</span></li>
+      <li><b>Earn both, pay for one</b><span>Kaspa rewards as before, ZKAS rewards on top. Your power bill doesn't change.</span></li>
     </ol>
   </section>
 
@@ -756,11 +757,11 @@ function renderCalc() {
   const r = rig(), e = earnings(C, r.h), pow = r.w / 1000 * 24 * r.e;
   $("tKas1").textContent = coins(e.kasDay); $("tKas2").textContent = coins(e.kasDay); $("tZk").textContent = coins(e.zkDay);
   $("tRev1").textContent = usd(e.kasUsd); $("tRev2").textContent = usd(e.kasUsd + e.zkUsd);
-  $("tPow1").textContent = usd(-pow); $("tPow2").textContent = usd(-pow);
+  $("tPow1").textContent = usd(-pow); $("tPow2").textContent = usd(-pow) + " (same)";
   $("tPro1").textContent = usd(e.kasUsd - pow); $("tPro2").textContent = usd(e.kasUsd + e.zkUsd - pow);
   $("cMonth").textContent = "+" + usd(e.zkUsd * 30.44, 0);
   const p1 = e.kasUsd - pow, p2 = p1 + e.zkUsd;
-  $("cMonthTxt").textContent = p1 <= 0 && p2 > 0 ? "a month from ZKAS, which turns this rig from a loss into a profit" : "more per month from mining ZKAS alongside Kaspa";
+  $("cMonthTxt").textContent = p1 <= 0 && p2 > 0 ? "a month from ZKAS with zero extra power, which turns this rig from a loss into a profit" : "more per month from ZKAS, with zero extra power";
   renderFuture();
 }
 
