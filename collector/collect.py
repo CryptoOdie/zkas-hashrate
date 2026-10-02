@@ -158,6 +158,21 @@ def main():
         merged.update({int(t): {"t": int(t), "usd": usd} for t, usd in cgz["prices"]})
         data["coingeckoZkas"] = sorted(merged.values(), key=lambda p: p["t"])
 
+    # Hourly candles from both exchanges, for the detailed 7-day and 1-month price views.
+    def merge_hourly(key, bars):
+        merged = {c["t"]: c for c in data.get(key, [])}
+        merged.update({b["t"]: b for b in bars})
+        data[key] = sorted(merged.values(), key=lambda c: c["t"])
+
+    nk_h = get(f"https://api.nonkyc.io/api/v2/market/candles?symbol=ZKAS_USDT&resolution=60&from={from_s}&to={to_s}")
+    if nk_h and nk_h.get("bars"):
+        merge_hourly("nonkycHourly", [{"t": b["time"], "o": b["open"], "h": b["high"], "l": b["low"], "c": b["close"], "v": b["volume"]}
+                                      for b in nk_h["bars"]])
+    nx_h = get("https://neoxa.exchange/api/exchange/candles/ZKAS_USDT?interval=1h&limit=1000")
+    if nx_h and nx_h.get("candles"):
+        merge_hourly("neoxaHourly", [{"t": c["time"] * 1000, "o": c["open"], "h": c["high"], "l": c["low"], "c": c["close"], "v": c["volume"]}
+                                     for c in nx_h["candles"]])
+
     # KAS/USD per day, to put the earlier OTC prices (quoted in KAS) into dollars.
     cg = get("https://api.coingecko.com/api/v3/coins/kaspa/market_chart?vs_currency=usd&days=120&interval=daily")
     if cg and cg.get("prices"):

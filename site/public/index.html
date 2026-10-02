@@ -247,7 +247,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     <div class="sec-head">
       <div class="eyebrow">Since launch &middot; 26 July 2026</div>
       <h2 id="h-price">ZKAS price, in dollars</h2>
-      <p>Exchange prices: Neoxa and NonKYC from 14 September, then CoinGecko. The dashed stretch from launch to the first listing is an estimate, not a traded price.</p>
+      <p>Hour by hour from the exchanges since ZKAS listed, with trading volume underneath.</p>
     </div>
     <div class="card">
       <div class="card-top">
@@ -257,7 +257,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
         <div class="ranges" role="group" aria-label="Time range" data-for="price"></div>
       </div>
       <div class="chart" id="chartPrice"></div>
-      <p class="note">Solid line: exchange prices (Neoxa and NonKYC, weighted by volume, then CoinGecko from 28 September). Dashed: estimate before the first listing.</p>
+      <p class="note">Hourly exchange price (NonKYC and Neoxa, weighted by volume; CoinGecko for any hour neither traded), with exchange volume. Dashed section, before the 14 September listing: estimated.</p>
     </div>
   </section>
 
@@ -400,6 +400,8 @@ async function loadHistory() {
   out.kasUsdDaily = union("kasUsdDaily", p => p.t).sort((a, b) => a.t - b.t);
   out.neoxaDaily = union("neoxaDaily", c => c.t).sort((a, b) => a.t - b.t);
   out.coingeckoZkas = union("coingeckoZkas", p => p.t).sort((a, b) => a.t - b.t);
+  out.nonkycHourly = union("nonkycHourly", c => c.t).sort((a, b) => a.t - b.t);
+  out.neoxaHourly = union("neoxaHourly", c => c.t).sort((a, b) => a.t - b.t);
   out.otcTrades = (() => { const m = new Map(); for (const g of got) for (const x of g.otcTrades || []) m.set(x[0], x); return [...m.values()].sort((a, b) => a[0] - b[0]); })();
   return out;
 }
@@ -487,49 +489,52 @@ function interp(series, t) {
   return series[series.length - 1][1];
 }
 function priceSeries(H, C) {
-  const kasUsd = (H.kasUsdDaily || []).map(p => [p.t, p.usd]);
-  const kasAt = t => interp(kasUsd, t) || C.kasUsd;
-  // OTC desk: volume-weighted price of each day's trades (quoted in KAS), in dollars at that day's KAS price.
-  const days = new Map();
-  for (const [t, p, q] of H.otcTrades || []) {
-    if (!(p > 0 && q > 0)) continue;
-    const d = Math.floor(t / 86400000) * 86400000 + 43200000, a = days.get(d) || [0, 0];
-    a[0] += p * q; a[1] += q; days.set(d, a);
-  }
-  const otc = [...days].sort((a, b) => a[0] - b[0]).map(([d, [pq, q]]) => [Math.min(d, Date.now()), pq / q * kasAt(d)]);
-  // Exchanges: each day's closes from Neoxa and NonKYC, weighted by that day's volume, then the live price.
-  const exDays = new Map();
-  for (const c of [...(H.neoxaDaily || []), ...(H.nonkycDaily || [])]) {
-    if (!(c.c > 0)) continue;
-    const d = Math.floor(c.t / 86400000) * 86400000 + 43200000, a = exDays.get(d) || [0, 0], w = c.v > 0 ? c.v : 1;
-    a[0] += c.c * w; a[1] += w; exDays.set(d, a);
-  }
-  const ex = [...exDays].sort((a, b) => a[0] - b[0]).map(([d, [pw, w]]) => [d, pw / w]).filter(p => p[0] < Date.now());
-  // CoinGecko: aggregated across exchanges, hourly, from its listing on 28 September.
-  const cg = (H.coingeckoZkas || []).map(p => [p.t, p.usd]).filter(p => p[1] > 0);
-  // One price line: OTC desk until the first exchange listing, exchanges until CoinGecko, then CoinGecko.
-  const listed = ex.length ? ex[0][0] : Infinity, cgFrom = cg.length ? cg[0][0] : Infinity;
-  const series = ex.filter(p => p[0] < cgFrom).concat(cg);
+  const HOUR = 3600000;
+  // Hourly exchange price: each hour's closes from NonKYC and Neoxa, weighted by volume; daily closes
+  // fill any day without hourly candles; CoinGecko fills any hour neither exchange traded.
+  const hours = new Map(), vol = new Map();
+  const add = (t, c, v) => {
+    if (!(c > 0)) return;
+    const k = Math.floor(t / HOUR) * HOUR, a = hours.get(k) || [0, 0], w = v > 0 ? v : 1e-9;
+    a[0] += c * w; a[1] += w; hours.set(k, a);
+    if (v > 0) vol.set(k, (vol.get(k) || 0) + v * c);
+  };
+  for (const c of [...(H.nonkycHourly || []), ...(H.neoxaHourly || [])]) add(c.t, c.c, c.v);
+  const hourlyDays = new Set([...hours.keys()].map(k => Math.floor(k / 86400000)));
+  for (const c of [...(H.neoxaDaily || []), ...(H.nonkycDaily || [])])
+    if (!hourlyDays.has(Math.floor(c.t / 86400000))) add(c.t + 12 * HOUR, c.c, c.v);
+  for (const p of H.coingeckoZkas || []) { const k = Math.floor(p.t / HOUR) * HOUR; if (!hours.has(k) && p.usd > 0) hours.set(k, [p.usd, 1]); }
+  let series = [...hours].sort((a, b) => a[0] - b[0]).map(([k, [pw, w]]) => [k + HOUR / 2, pw / w]).filter(p => p[0] < Date.now());
+  // A thin hour can print far off the market; pull any such print back to the median of its neighbours.
+  series = series.map((p, i) => {
+    const near = series.slice(Math.max(0, i - 6), i + 7).map(q => q[1]).sort((a, b) => a - b), med = near[near.length >> 1];
+    return p[1] / med > 2.5 || p[1] / med < 0.4 ? [p[0], med] : p;
+  });
   if (C.zkasUsd) series.push([Date.now(), C.zkasUsd]);
-  return {series, est: estimateBeforeFirstTrade(series)};
+  return {series, vol: [...vol].sort((a, b) => a[0] - b[0]), est: estimateBeforeFirstListing(series)};
 }
 
-/* ESTIMATE, not traded prices: from launch to the first exchange listing (14 September). From launch
-   it climbs on a log scale from 2% of the first traded price to meet it exactly, with smooth,
-   deterministic wobble so it looks like a market. Drawn dashed and labelled as an estimate. */
-function estimateBeforeFirstTrade(series) {
+/* ESTIMATE, not traded prices: from launch to the first exchange listing (14 September). An hourly
+   random walk (about 3% an hour) that drifts on a log scale from 2% of the first listed price up to
+   meet it exactly. Deterministic, so it looks the same on every visit. Drawn dashed and labelled. */
+function estimateBeforeFirstListing(series) {
   if (!series.length || series[0][0] <= GENESIS) return [];
-  const [t1, p1] = series[0], p0 = p1 * 0.02, step = 4 * 3600000, n = Math.max(2, Math.round((t1 - GENESIS) / step));
-  let seed = 7, walk = 0;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647 - 0.5;
+  const HOUR = 3600000, t1 = series[0][0];
+  // Aim at the typical price of the first listed day, not its first (often spiky) print.
+  const day1 = series.filter(p => p[0] < t1 + 24 * HOUR).map(p => p[1]).sort((a, b) => a - b);
+  const p1 = day1[day1.length >> 1], p0 = p1 * 0.03, n = Math.max(2, Math.round((t1 - GENESIS) / HOUR));
+  let seed = 11, dev = 0, swing = 0;
+  const rnd = () => { let u = 0; for (let i = 0; i < 4; i++) { seed = (seed * 16807) % 2147483647; u += seed / 2147483647; } return (u - 2) * 1.73; };
   const out = [];
   for (let i = 0; i <= n; i++) {
-    const f = i / n;
-    walk = walk * 0.9 + rnd() * 0.35;
-    const wobble = (walk + 0.18 * Math.sin(f * 23) + 0.1 * Math.sin(f * 61 + 1)) * Math.sin(Math.PI * f);
-    out.push([GENESIS + (t1 - GENESIS) * f, Math.exp(Math.log(p0) + (Math.log(p1) - Math.log(p0)) * Math.pow(f, 1.6) + wobble)]);
+    const f = i / n, trend = Math.log(p0) + (Math.log(p1) - Math.log(p0)) * Math.pow(f, 1.35);
+    swing = swing * 0.995 + rnd() * 0.022;                 // multi-day swings
+    if (Math.abs(swing) > 0.5) swing *= 0.97;
+    dev = dev * 0.82 + rnd() * 0.055;                       // hour-to-hour chop
+    const fade = Math.min(1, f * 12) * Math.min(1, (1 - f) * 30);
+    out.push([GENESIS + (t1 - GENESIS) * f, Math.exp(trend + (swing + dev) * fade)]);
   }
-  out[out.length - 1] = [t1, p1];
+  out[out.length - 1] = [t1, series[0][1]];
   return out;
 }
 
@@ -541,8 +546,13 @@ function chart(el, cfg) {
     const iw = W - m.l - m.r, ih = Hh - m.t - m.b;
     const xs = cfg.series.flatMap(s => s.data.map(d => d[0]));
     const x0 = cfg.x0 ?? Math.min(...xs), x1 = cfg.x1 ?? Math.max(...xs);
-    const lMax = niceMax(Math.max(...cfg.series.filter(s => !s.right).flatMap(s => s.data.map(d => d[1]))) * 1.06);
-    const lMin = Math.min(0, ...cfg.series.filter(s => !s.right).flatMap(s => s.data.map(d => d[1])));
+    const leftVals = cfg.series.filter(s => !s.right).flatMap(s => s.data.filter(d => d[0] >= x0 - 1 && d[0] <= x1 + 1).map(d => d[1]));
+    let lMax = niceMax(Math.max(...leftVals) * 1.06), lMin = Math.min(0, ...leftVals);
+    if (cfg.zoom && leftVals.length) {
+      // Fit the visible range so swings fill the chart, leaving room under it for volume bars.
+      const lo = Math.min(...leftVals), hi = Math.max(...leftVals), pad = (hi - lo) * 0.08 || hi * 0.05;
+      lMax = hi + pad; lMin = Math.max(0, lo - pad - (cfg.bars ? (hi - lo) * 0.28 : 0));
+    }
     const rMax = cfg.right ? niceMax(Math.max(...cfg.series.filter(s => s.right).flatMap(s => s.data.map(d => d[1]))) * 1.1) : 1;
     const X = t => m.l + (t - x0) / ((x1 - x0) || 1) * iw;
     const Y = (v, r) => m.t + ih - (r ? v / rMax : (v - lMin) / (lMax - lMin)) * ih;
@@ -561,6 +571,11 @@ function chart(el, cfg) {
       if (cfg.bandLabel && bw > 70) g += `<g class="axis"><text x="${bx + bw / 2}" y="${m.t + ih / 2 - 6}" text-anchor="middle">${cfg.bandLabel[0]}</text><text x="${bx + bw / 2}" y="${m.t + ih / 2 + 12}" text-anchor="middle">${cfg.bandLabel[1]}</text></g>`;
     }
     let paths = "";
+    if (cfg.bars && cfg.bars.length) {
+      const vis = cfg.bars.filter(b => b[0] >= x0 && b[0] <= x1), vmax = Math.max(...vis.map(b => b[1]), 1);
+      const bw = Math.max(1, iw / Math.max(1, (x1 - x0) / cfg.barStep) - 1);
+      for (const [t, v] of vis) { const h = v / vmax * ih * 0.2; paths += `<rect x="${(X(t) - bw / 2).toFixed(1)}" y="${(m.t + ih - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="var(--kas)" opacity=".28"/>`; }
+    }
     cfg.series.forEach((s, i) => {
       if (!s.data.length) return;
       const d = s.data.map((p, j) => (j ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1], s.right).toFixed(1)).join("");
@@ -620,7 +635,7 @@ function renderHero() {
 
 /* time ranges: 7D, 1M, 3M, 6M, 1Y, All. Ranges longer than the data so far stay hidden. */
 const RANGES = [["7D", 7], ["1M", 30], ["3M", 91], ["6M", 182], ["1Y", 365], ["All", 0]];
-const range = {hash: 0, price: 0};
+const range = (() => { const r = +new URLSearchParams(location.search).get("range") || 0; return {hash: r, price: r}; })();
 function clip(series, x0) {
   if (!x0 || !series.length || series[0][0] >= x0) return series;
   const inside = series.filter(p => p[0] >= x0);
@@ -665,19 +680,23 @@ function renderHash() {
 }
 
 function renderPrice() {
-  const {series, est} = priceSeries(H, C);
+  const {series, vol, est} = priceSeries(H, C);
   if (!series.length) { $("chartPrice").innerHTML = '<p class="note">Price history is unavailable right now.</p>'; return; }
-  // The chart starts at launch; the line starts at the first trade, with the weeks before shaded.
-  const firstTrade = series[0][0];
+  const firstListed = series[0][0];
   if (!document.querySelector('.ranges[data-for="price"] button')) buildRanges("price", GENESIS, renderPrice);
-  const x0 = rangeStart("price", GENESIS);
+  const x0 = rangeStart("price", GENESIS), span = Date.now() - x0;
+  // Volume bars: hourly in a week, 4-hourly in a month, daily beyond.
+  const step = span <= 8 * 86400000 ? 3600000 : span <= 32 * 86400000 ? 4 * 3600000 : 86400000;
+  const bucket = new Map();
+  for (const [t, v] of vol) { const k = Math.floor(t / step) * step + step / 2; bucket.set(k, (bucket.get(k) || 0) + v); }
   if (C.zkasUsd) $("pNow").textContent = price(C.zkasUsd);
+  const when = t => new Date(t).toLocaleString("en-US", {month: "short", day: "numeric", hour: "numeric"});
   chart($("chartPrice"), {
-    label: "ZKAS price in US dollars since launch", right: false, x0, x1: Date.now(),
-    band: x0 < firstTrade ? [x0, firstTrade] : null, bandLabel: ["ESTIMATE", "before the first listing"],
-    fmtL: v => "$" + (v < 0.01 ? v.toFixed(4) : v.toFixed(3)),
+    label: "ZKAS price in US dollars since launch, with exchange volume", right: false, x0, x1: Date.now(), zoom: true,
+    bars: [...bucket], barStep: step, fmtTipX: span <= 32 * 86400000 ? when : dayY,
+    fmtL: v => "$" + (v < 0.001 ? v.toFixed(5) : v < 0.01 ? v.toFixed(4) : v.toFixed(3)),
     series: [
-      {name: "Estimate", data: clip(est, x0), color: "var(--zkas)", dash: true, area: true, fmt: v => price(v) + " (est.)", tipBefore: firstTrade},
+      {name: "Estimate", data: clip(est, x0), color: "var(--zkas)", dash: true, area: true, fmt: v => price(v) + " (est.)", tipBefore: firstListed},
       {name: "ZKAS", data: clip(series, x0), color: "var(--zkas)", area: true, fmt: price},
     ],
   });
