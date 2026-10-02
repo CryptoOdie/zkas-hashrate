@@ -226,7 +226,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     <div class="sec-head">
       <div class="eyebrow">Since launch &middot; 26 July 2026</div>
       <h2 id="h-hash">ZKAS hashrate, next to Kaspa's</h2>
-      <p>Measured from the chain's own cumulative work, not estimated from pool reports. The orange line is the share of all Kaspa hashrate that is also mining ZKAS.</p>
+      <p>Read from the difficulty the chain itself records, every 12 hours since launch and hourly since, not from pool reports. The orange line is the share of all Kaspa hashrate that is also mining ZKAS.</p>
     </div>
     <div class="card">
       <div class="card-top">
@@ -439,16 +439,10 @@ const kaspaRewardAt = (C, t0, t) => C.kaspaReward * KASPA_BPS * Math.pow(STEP, (
 
 /* ---------- series ---------- */
 function zkasSeries(H) {
-  const pts = [{ts: GENESIS, bw: 0n}];
-  for (const p of H.pruningPoints || []) {
-    try { pts.push({ts: p.ts, bw: BigInt(/^\d+$/.test(p.bw) ? p.bw : "0x" + p.bw)}); } catch (e) {}
-  }
-  pts.sort((a, b) => a.ts - b.ts);
-  const out = [];
-  for (let i = 1; i < pts.length; i++) {
-    const dt = (pts[i].ts - pts[i - 1].ts) / 1000; if (dt <= 0) continue;
-    out.push([(pts[i].ts + pts[i - 1].ts) / 2, Number(pts[i].bw - pts[i - 1].bw) / dt]);
-  }
+  // Network hashrate at every pruning point (every ~12 hours since launch), from the difficulty the
+  // chain itself recorded: hashrate = 2^256 / target at one block per second.
+  const fromBits = bits => { const e = bits >>> 24, m = bits & 0xffffff; return Math.pow(2, 256) / (m * Math.pow(256, e - 3)); };
+  const out = (H.pruningPoints || []).filter(p => p.daa > 0 && p.bits).map(p => [p.ts, fromBits(p.bits)]).sort((a, b) => a[0] - b[0]);
   const last = out.length ? out[out.length - 1][0] : GENESIS;
   // Hourly samples since the last pruning point: average the explorer's three readings and the pool's.
   const bucket = new Map();
