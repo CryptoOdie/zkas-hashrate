@@ -160,6 +160,8 @@ table.earn tr.total td{font-weight:600; color:var(--ink); border-bottom:2px soli
 .seg{display:inline-flex; background:var(--paper); border:1px solid var(--rule); border-radius:999px; padding:3px; font-family:var(--body)}
 .seg button{font:600 15px/1 var(--body); white-space:nowrap; padding:10px 14px; border:0; border-radius:999px; background:transparent; color:var(--muted); cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper)}
+.mcapline{margin:14px 0 0; font-size:16px; color:var(--muted)}
+.mcapline b{font-family:var(--display); font-size:22px; color:var(--ink)}
 .answers{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px}
 .ans{border-radius:14px; padding:18px 20px; display:grid; gap:4px; background:var(--paper); border:1px solid var(--rule)}
 .ans.hold{background:var(--accent-soft); border-color:transparent}
@@ -327,7 +329,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
   <section class="sec reveal" id="future" aria-labelledby="h-future">
     <div class="sec-head">
       <div class="eyebrow">Looking forward</div>
-      <h2 id="h-future">What if ZKAS goes up?</h2>
+      <h2 id="h-future">ZKAS future</h2>
     </div>
     <div class="card fwd">
       <p class="ask">If ZKAS reaches
@@ -336,8 +338,9 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
         <span class="seg" id="segT" role="group" aria-label="When"><button type="button" data-m="3">3 months</button><button type="button" data-m="6" aria-pressed="true">6 months</button><button type="button" data-m="12">1 year</button></span>
       </p>
       <div class="chips" id="scenChips" aria-label="Quick prices">
-        <button class="chip" data-m="1">Today's price</button><button class="chip" data-m="2" aria-pressed="true">2&times;</button><button class="chip" data-m="5">5&times;</button><button class="chip" data-m="10">10&times;</button>
+        <button class="chip" data-m="1">Today's price</button><button class="chip" data-m="2" aria-pressed="true">2&times;</button><button class="chip" data-m="5">5&times;</button><button class="chip" data-m="10">10&times;</button><button class="chip" data-m="20">20&times;</button><button class="chip" data-m="50">50&times;</button><button class="chip" data-m="100">100&times;</button>
       </div>
+      <p class="mcapline" id="fMcap"></p>
       <div class="answers">
         <div class="ans hold"><small>Hold the ZKAS you mine</small><b class="num" id="oHold">&ndash;</b><span id="oHoldSub"></span></div>
         <div class="ans sell"><small>Sell it as you mine</small><b class="num" id="oSell">&ndash;</b><span id="oSellSub"></span></div>
@@ -770,18 +773,23 @@ let fwdMonths = 6;
 function renderFuture() {
   const r = rig(), target = Math.max(0, +$("inP").value || 0) || C.zkasUsd, growth = 0.05;
   const t0 = Date.now() / 1000, days = Math.round(fwdMonths * 30.44), end = t0 + days * 86400;
-  let zk = 0, sold = 0;
+  let zk = 0, sold = 0, emitted = 0;
   const hold = [], sell = [];
   for (let d = 0; d <= days; d++) {
     const t = t0 + d * 86400, f = days ? d / days : 1, p = C.zkasUsd * Math.pow(target / C.zkasUsd, f);
     if (d > 0) {
       const zh = C.zkasHashrate * Math.pow(1 + growth, (t - t0) / SECONDS_PER_MONTH);
       const dz = r.h / (zh + r.h) * zkasRewardAt(C, t) * ZKAS_MINER_SHARE * 86400;
-      zk += dz; sold += dz * p;
+      zk += dz; sold += dz * p; emitted += zkasRewardAt(C, t) * 86400;
     }
     hold.push([t * 1000, zk * p]); sell.push([t * 1000, sold]);
   }
   const H1 = zk * target, S1 = sold;
+  if (C.supply) {
+    const sup = C.supply + emitted, cap = target * sup;
+    $("fMcap").innerHTML = `That's a market cap of <b class="num">${bigUsd(cap)}</b>` +
+      ` with ${(sup / 1e6).toFixed(0)}M ZKAS in circulation by then. Today it's ${bigUsd(C.zkasUsd * C.supply)}.`;
+  }
   $("oHold").textContent = usd(H1, 0); $("oHoldSub").textContent = `${coins(zk)} ZKAS at ${price(target)}`;
   $("oSell").textContent = usd(S1, 0); $("oSellSub").textContent = "sold along the way as the price climbs";
   const when = fwdMonths === 12 ? "a year" : fwdMonths + " months";
