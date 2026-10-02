@@ -245,9 +245,9 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
 
   <section class="sec reveal" aria-labelledby="h-price">
     <div class="sec-head">
-      <div class="eyebrow">Since the first trade &middot; 23 August 2026</div>
+      <div class="eyebrow">Since launch &middot; 26 July 2026</div>
       <h2 id="h-price">ZKAS price, in dollars</h2>
-      <p>From the first trade to today: the OTC desk before ZKAS was listed, then NonKYC and Neoxa, then CoinGecko.</p>
+      <p>ZKAS was mined for four weeks before anyone could buy it. The price starts at the first trade on 23 August: the OTC desk before ZKAS was listed, then NonKYC and Neoxa, then CoinGecko.</p>
     </div>
     <div class="card">
       <div class="card-top">
@@ -257,7 +257,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
         <div class="ranges" role="group" aria-label="Time range" data-for="price"></div>
       </div>
       <div class="chart" id="chartPrice"></div>
-      <p class="note">ZKAS launched on 26 July; the first trade anywhere was on 23 August. Until exchanges listed it on 14 September, the price is the community OTC desk's daily average, quoted in KAS and converted at that day's KAS price. From 28 September it is CoinGecko's price across exchanges.</p>
+      <p class="note">Until exchanges listed ZKAS on 14 September, the price is the community OTC desk's daily average, quoted in KAS and converted at that day's KAS price. From 28 September it is CoinGecko's price across exchanges.</p>
     </div>
   </section>
 
@@ -536,7 +536,11 @@ function chart(el, cfg) {
     }
     const ticks = Math.max(2, Math.min(7, Math.floor(iw / 110)));
     for (let i = 0; i <= ticks; i++) { const t = x0 + (x1 - x0) * i / ticks; g += `<g class="axis"><text x="${X(t)}" y="${Hh - 6}" text-anchor="middle">${(cfg.fmtX || day)(t)}</text></g>`; }
-    if (cfg.band) g += `<rect x="${X(cfg.band[0])}" y="${m.t}" width="${Math.max(0, X(cfg.band[1]) - X(cfg.band[0]))}" height="${ih}" fill="var(--rule)" opacity=".35"/>`;
+    if (cfg.band) {
+      const bx = X(cfg.band[0]), bw = Math.max(0, X(cfg.band[1]) - bx);
+      g += `<rect x="${bx}" y="${m.t}" width="${bw}" height="${ih}" fill="var(--rule)" opacity=".35"/>`;
+      if (cfg.bandLabel && bw > 70) g += `<g class="axis"><text x="${bx + bw / 2}" y="${m.t + ih / 2 - 6}" text-anchor="middle">${cfg.bandLabel[0]}</text><text x="${bx + bw / 2}" y="${m.t + ih / 2 + 12}" text-anchor="middle">${cfg.bandLabel[1]}</text></g>`;
+    }
     let paths = "";
     cfg.series.forEach((s, i) => {
       if (!s.data.length) return;
@@ -644,12 +648,14 @@ function renderHash() {
 function renderPrice() {
   const {series} = priceSeries(H, C);
   if (!series.length) { $("chartPrice").innerHTML = '<p class="note">Price history is unavailable right now.</p>'; return; }
-  const first = series[0][0];
-  if (!document.querySelector('.ranges[data-for="price"] button')) buildRanges("price", first, renderPrice);
-  const x0 = rangeStart("price", first);
+  // The chart starts at launch; the line starts at the first trade, with the weeks before shaded.
+  const firstTrade = series[0][0];
+  if (!document.querySelector('.ranges[data-for="price"] button')) buildRanges("price", GENESIS, renderPrice);
+  const x0 = rangeStart("price", GENESIS);
   if (C.zkasUsd) $("pNow").textContent = price(C.zkasUsd);
   chart($("chartPrice"), {
-    label: "ZKAS price in US dollars since the first trade", right: false, x0, x1: Date.now(),
+    label: "ZKAS price in US dollars since launch", right: false, x0, x1: Date.now(),
+    band: x0 < firstTrade ? [x0, firstTrade] : null, bandLabel: ["NO MARKET YET", "mining only"],
     fmtL: v => "$" + (v < 0.01 ? v.toFixed(4) : v.toFixed(3)),
     series: [{name: "ZKAS", data: clip(series, x0), color: "var(--zkas)", area: true, fmt: price}],
   });
