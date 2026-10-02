@@ -385,9 +385,20 @@ async function getJSON(url, ms = 12000) {
   try { const r = await fetch(url, {signal: c.signal, cache: "no-store"}); if (!r.ok) throw new Error(r.status); return await r.json(); }
   finally { clearTimeout(t); }
 }
+/* Load every copy (GitHub, which the hourly job updates, and the one bundled with the site) and merge
+   them, so a stale cache on either side can never hide data the other has. */
 async function loadHistory() {
-  for (const u of HISTORY_URLS) { try { return await getJSON(u); } catch (e) {} }
-  return null;
+  const got = (await Promise.allSettled(HISTORY_URLS.map(u => getJSON(u)))).filter(r => r.status === "fulfilled").map(r => r.value);
+  if (!got.length) return null;
+  got.sort((a, b) => (b.updated || 0) - (a.updated || 0));
+  const out = {...got[0]};
+  const union = (key, id) => { const m = new Map(); for (const g of got) for (const x of g[key] || []) if (!m.has(id(x))) m.set(id(x), x); return [...m.values()]; };
+  out.pruningPoints = union("pruningPoints", p => p.hash).sort((a, b) => a.ts - b.ts);
+  out.samples = union("samples", s => s.t).sort((a, b) => a.t - b.t);
+  out.priceHistory = union("priceHistory", p => p.t).sort((a, b) => a.t - b.t);
+  out.nonkycDaily = union("nonkycDaily", c => c.t).sort((a, b) => a.t - b.t);
+  out.kasUsdDaily = union("kasUsdDaily", p => p.t).sort((a, b) => a.t - b.t);
+  return out;
 }
 async function loadLive() {
   const tries = {
