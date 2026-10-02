@@ -80,6 +80,9 @@ def main():
     shielded = get(f"{EXPLORER}/info/shielded")
     if shielded:
         sample["zkas"]["notes"] = shielded.get("noteCount")
+    supply = get(f"{EXPLORER}/info/coinsupply")
+    if supply and supply.get("circulatingSupply"):
+        sample["zkas"]["supply"] = int(supply["circulatingSupply"]) / 1e8
     pool = get("https://mining-pool.zkas.info/api/stats")
     if pool and pool.get("networkHashrate"):
         sample["zkas"]["pool"] = pool["networkHashrate"]

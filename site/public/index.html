@@ -217,7 +217,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
   <section class="facts" aria-label="Live figures">
     <div class="fact"><b class="num" id="fZh">&ndash;</b><small>ZKAS network hashrate</small></div>
     <div class="fact"><b class="num" id="fShare">&ndash;</b><small>of Kaspa's hashrate mines ZKAS too</small></div>
-    <div class="fact"><b class="num" id="fPrice">&ndash;</b><small>ZKAS price</small></div>
+    <div class="fact"><b class="num" id="fPrice">&ndash;</b><small>ZKAS price<br><span class="num" id="fCap"></span></small></div>
     <div class="fact"><b class="num" id="fReward">&ndash;</b><small>ZKAS per second to miners</small></div>
     <div class="fact"><b class="num" id="fNext">&ndash;</b><small>until the next 5.6% reward step-down</small></div>
   </section>
@@ -252,12 +252,22 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     <div class="card">
       <div class="card-top">
         <div class="legend">
-          <span style="color:var(--zkas)"><i style="background:var(--zkas)"></i>ZKAS / USD <b class="num" id="pNow"></b></span>
+          <span style="color:var(--zkas);flex-direction:column;align-items:flex-start;gap:2px"><span style="display:inline-flex;align-items:center;gap:8px"><i style="background:var(--zkas)"></i>ZKAS / USD <b class="num" id="pNow"></b></span><span class="num" id="pCap" style="color:var(--muted);font-size:13px;padding-left:26px"></span></span>
         </div>
         <div class="ranges" role="group" aria-label="Time range" data-for="price"></div>
       </div>
       <div class="chart" id="chartPrice"></div>
       <p class="note">Hourly exchange price (NonKYC and Neoxa, weighted by volume; CoinGecko for any hour neither traded), with exchange volume. Dashed section, before the 14 September listing: estimated.</p>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-top">
+        <div class="legend">
+          <span style="color:var(--accent);flex-direction:column;align-items:flex-start;gap:2px"><span style="display:inline-flex;align-items:center;gap:8px"><i style="background:var(--accent)"></i>ZKAS market cap <b class="num" id="mNow"></b></span><span class="num" id="mSub" style="color:var(--muted);font-size:13px;padding-left:26px"></span></span>
+        </div>
+        <div class="ranges" role="group" aria-label="Time range" data-for="mcap"></div>
+      </div>
+      <div class="chart" id="chartCap" style="height:300px"></div>
+      <p class="note">Price &times; circulating supply. Supply over time follows ZKAS's emission schedule, matched to the explorer's live circulating supply today.</p>
     </div>
   </section>
 
@@ -375,6 +385,7 @@ const $ = id => document.getElementById(id);
 const usd = (v, d) => (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString("en-US", {minimumFractionDigits: d ?? (Math.abs(v) < 10 ? 2 : 0), maximumFractionDigits: d ?? (Math.abs(v) < 10 ? 2 : 0)});
 const price = v => "$" + (v < 0.01 ? v.toFixed(5) : v < 1 ? v.toFixed(4) : v.toFixed(2));
 const hr = h => h >= 1e18 ? (h / 1e18).toFixed(2) + " EH/s" : h >= 1e15 ? (h / 1e15).toFixed(1) + " PH/s" : (h / 1e12).toFixed(1) + " TH/s";
+const bigUsd = v => v >= 1e9 ? "$" + (v / 1e9).toFixed(2) + "B" : v >= 1e6 ? "$" + (v / 1e6).toFixed(2) + "M" : "$" + Math.round(v / 1e3) + "K";
 const coins = v => v >= 100 ? Math.round(v).toLocaleString("en-US") : v.toFixed(2);
 const day = t => new Date(t).toLocaleDateString("en-US", {month: "short", day: "numeric"});
 const dayY = t => new Date(t).toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"});
@@ -412,6 +423,7 @@ async function loadLive() {
     pool: getJSON("https://mining-pool.zkas.info/api/stats"),
     otc: getJSON("https://mining-pool.zkas.info/api/otc/price"),
     cg: getJSON("https://api.coingecko.com/api/v3/simple/price?ids=zkas,kaspa&vs_currencies=usd"),
+    supply: getJSON("https://explorer.zkas.info/api/info/coinsupply"),
     kh: getJSON("https://api.kaspa.org/info/hashrate?stringOnly=false"),
     kr: getJSON("https://api.kaspa.org/info/blockreward"),
     kp: getJSON("https://api.kaspa.org/info/price"),
@@ -436,6 +448,7 @@ function current(H, L) {
     kasUsd: L.otc ? L.otc.kasUsd : (L.kp ? L.kp.price : s.price.kasUsd),
     kaspaHashrate: L.kh ? L.kh.hashrate * 1e12 : s.kaspa.hashrate,
     kaspaReward: L.kr ? L.kr.blockreward : s.kaspa.reward,
+    supply: L.supply ? Number(L.supply.circulatingSupply) / 1e8 : s.zkas.supply,
   };
 }
 
@@ -627,6 +640,7 @@ function renderHero() {
   $("fZh").textContent = hr(C.zkasHashrate);
   $("fShare").textContent = (C.zkasHashrate / C.kaspaHashrate * 100).toFixed(1) + "%";
   $("fPrice").textContent = price(C.zkasUsd);
+  if (C.supply) $("fCap").textContent = bigUsd(C.zkasUsd * C.supply) + " market cap";
   $("fReward").textContent = (C.zkasReward * ZKAS_BPS * ZKAS_MINER_SHARE).toFixed(2);
   const tick = () => { const s = Math.max(0, C.nextReduction - Date.now() / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
     $("fNext").textContent = h >= 48 ? Math.round(h / 24) + " days" : `${h}h ${String(m).padStart(2, "0")}m`; };
@@ -635,7 +649,7 @@ function renderHero() {
 
 /* time ranges: 7D, 1M, 3M, 6M, 1Y, All. Ranges longer than the data so far stay hidden. */
 const RANGES = [["7D", 7], ["1M", 30], ["3M", 91], ["6M", 182], ["1Y", 365], ["All", 0]];
-const range = (() => { const r = +new URLSearchParams(location.search).get("range") || 0; return {hash: r, price: r}; })();
+const range = (() => { const r = +new URLSearchParams(location.search).get("range") || 0; return {hash: r, price: r, mcap: r}; })();
 function clip(series, x0) {
   if (!x0 || !series.length || series[0][0] >= x0) return series;
   const inside = series.filter(p => p[0] >= x0);
@@ -690,6 +704,7 @@ function renderPrice() {
   const bucket = new Map();
   for (const [t, v] of vol) { const k = Math.floor(t / step) * step + step / 2; bucket.set(k, (bucket.get(k) || 0) + v); }
   if (C.zkasUsd) $("pNow").textContent = price(C.zkasUsd);
+  if (C.zkasUsd && C.supply) $("pCap").textContent = "Market cap " + bigUsd(C.zkasUsd * C.supply) + " · " + (C.supply / 1e6).toFixed(1) + "M ZKAS circulating";
   const when = t => new Date(t).toLocaleString("en-US", {month: "short", day: "numeric", hour: "numeric"});
   chart($("chartPrice"), {
     label: "ZKAS price in US dollars since launch, with exchange volume", right: false, x0, x1: Date.now(), zoom: true,
@@ -698,6 +713,40 @@ function renderPrice() {
     series: [
       {name: "Estimate", data: clip(est, x0), color: "var(--zkas)", dash: true, area: true, fmt: v => price(v) + " (est.)", tipBefore: firstListed},
       {name: "ZKAS", data: clip(series, x0), color: "var(--zkas)", area: true, fmt: price},
+    ],
+  });
+}
+
+/* Circulating supply at time t (ms): ZKAS's emission (the reward steps down 5.61% every ~7.6 days,
+   counted back from the live reward and its next step), integrated hourly from launch and scaled so
+   today's value equals the explorer's live circulating supply. */
+function supplyModel() {
+  const HOUR = 3600, g = GENESIS / 1000, now = Date.now() / 1000, pts = [];
+  let cum = 0;
+  for (let t = g; t <= now + HOUR; t += HOUR) {
+    const j = Math.ceil((C.nextReduction - t) / ZKAS_STEP_S) - 1;      // steps between t and the current one
+    const reward = Math.max(C.zkasReward * ZKAS_BPS * Math.pow(STEP, -Math.max(0, j)), t < TAIL_SWITCH ? 6 : 0.6);
+    cum += reward * HOUR; pts.push([t * 1000, cum]);
+  }
+  const k = C.supply ? C.supply / interp(pts, Date.now()) : 1;
+  return t => interp(pts, t) * k;
+}
+
+function renderCap() {
+  const {series, est} = priceSeries(H, C), sup = supplyModel();
+  if (!series.length) return;
+  const firstListed = series[0][0];
+  const cap = series.map(([t, v]) => [t, v * sup(t)]), capEst = est.map(([t, v]) => [t, v * sup(t)]);
+  if (!document.querySelector('.ranges[data-for="mcap"] button')) buildRanges("mcap", GENESIS, renderCap);
+  const x0 = rangeStart("mcap", GENESIS), span = Date.now() - x0;
+  const when = t => new Date(t).toLocaleString("en-US", {month: "short", day: "numeric", hour: "numeric"});
+  if (C.zkasUsd && C.supply) { $("mNow").textContent = bigUsd(C.zkasUsd * C.supply); $("mSub").textContent = (C.supply / 1e6).toFixed(1) + "M ZKAS circulating"; }
+  chart($("chartCap"), {
+    label: "ZKAS market capitalisation in US dollars since launch", right: false, x0, x1: Date.now(), zoom: true,
+    fmtTipX: span <= 32 * 86400000 ? when : dayY, fmtL: bigUsd,
+    series: [
+      {name: "Market cap (est.)", data: clip(capEst, x0), color: "var(--accent)", dash: true, area: true, fmt: bigUsd, tipBefore: firstListed},
+      {name: "Market cap", data: clip(cap, x0), color: "var(--accent)", area: true, fmt: bigUsd},
     ],
   });
 }
@@ -821,7 +870,7 @@ function heroCanvas() {
   H = hist || {pruningPoints: [], samples: [], kaspaDaily: []};
   C = current(H, live);
   if (!C.zkasHashrate || !C.kaspaHashrate || !C.zkasUsd || !C.kasUsd) { $("asof").textContent = "Live data is unavailable right now. Try again in a minute."; return; }
-  renderHero(); renderHash(); renderPrice();
+  renderHero(); renderHash(); renderPrice(); renderCap();
   setScenario(2); renderCalc();
   setInterval(async () => { const L = await loadLive(); const n = current(H, L); if (n.zkasHashrate && n.zkasUsd) { C = n; renderHero(); renderCalc(); } }, 120000);
 })();
