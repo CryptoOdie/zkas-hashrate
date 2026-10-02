@@ -94,6 +94,12 @@ h2{font-weight:700; font-size:clamp(30px,4.4vw,46px); line-height:1.04}
 
 /* charts */
 .card{background:var(--surface); border:1px solid var(--rule); border-radius:14px; padding:20px 20px 14px}
+.card-top{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px 16px; margin-bottom:10px}
+.card-top .legend{margin:0}
+.ranges{display:flex; gap:4px; background:var(--paper); border:1px solid var(--rule); border-radius:999px; padding:3px}
+.ranges button{font:500 12px/1 var(--mono); padding:7px 10px; border-radius:999px; border:0; background:transparent; color:var(--muted); cursor:pointer}
+.ranges button[aria-pressed="true"]{background:var(--ink); color:var(--paper)}
+.ranges button[hidden]{display:none}
 .legend{display:flex; flex-wrap:wrap; gap:6px 20px; font-size:13.5px; color:var(--muted); margin-bottom:10px}
 .legend span{display:inline-flex; align-items:center; gap:8px}
 .legend i{width:18px; height:3px; border-radius:2px; display:inline-block}
@@ -223,10 +229,13 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
       <p>Measured from the chain's own cumulative work, not estimated from pool reports. The orange line is the share of all Kaspa hashrate that is also mining ZKAS.</p>
     </div>
     <div class="card">
-      <div class="legend">
-        <span style="color:var(--zkas)"><i style="background:var(--zkas)"></i>ZKAS hashrate</span>
-        <span style="color:var(--kas)"><i style="background:var(--kas)"></i>Kaspa hashrate</span>
-        <span style="color:var(--share)"><i class="dash" style="color:var(--share)"></i>ZKAS share of Kaspa (right axis)</span>
+      <div class="card-top">
+        <div class="legend">
+          <span style="color:var(--zkas)"><i style="background:var(--zkas)"></i>ZKAS hashrate</span>
+          <span style="color:var(--kas)"><i style="background:var(--kas)"></i>Kaspa hashrate</span>
+          <span style="color:var(--share)"><i class="dash" style="color:var(--share)"></i>ZKAS share of Kaspa (right axis)</span>
+        </div>
+        <div class="ranges" role="group" aria-label="Time range" data-for="hash"></div>
       </div>
       <div class="chart" id="chartHash"></div>
       <div class="src-pills" id="srcPills"></div>
@@ -241,9 +250,12 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
       <p>The OTC market until NonKYC listed ZKAS on 25 September, then NonKYC's daily close. OTC prices were quoted in KAS and are converted at that day's KAS price.</p>
     </div>
     <div class="card">
-      <div class="legend">
-        <span style="color:var(--zkas)"><i style="background:var(--zkas)"></i>ZKAS / USD</span>
-        <span style="color:var(--muted)"><i class="dash" style="color:var(--muted)"></i>OTC period</span>
+      <div class="card-top">
+        <div class="legend">
+          <span style="color:var(--zkas)"><i style="background:var(--zkas)"></i>ZKAS / USD</span>
+          <span style="color:var(--muted)"><i class="dash" style="color:var(--muted)"></i>OTC period</span>
+        </div>
+        <div class="ranges" role="group" aria-label="Time range" data-for="price"></div>
       </div>
       <div class="chart" id="chartPrice"></div>
     </div>
@@ -556,18 +568,37 @@ function renderHero() {
   tick(); setInterval(tick, 30000);
 }
 
+/* time ranges: 7D, 1M, 3M, 6M, 1Y, All. Ranges longer than the data so far stay hidden. */
+const RANGES = [["7D", 7], ["1M", 30], ["3M", 91], ["6M", 182], ["1Y", 365], ["All", 0]];
+const range = {hash: 0, price: 0};
+function clip(series, x0) {
+  if (!x0 || !series.length || series[0][0] >= x0) return series;
+  const inside = series.filter(p => p[0] >= x0);
+  return [[x0, interp(series, x0)], ...inside];
+}
+function rangeStart(key, first) { const d = range[key]; return d ? Math.max(first, Date.now() - d * 86400000) : first; }
+function buildRanges(key, first, redraw) {
+  const box = document.querySelector(`.ranges[data-for="${key}"]`), age = (Date.now() - first) / 86400000;
+  box.innerHTML = RANGES.map(([l, d]) => `<button type="button" data-d="${d}" aria-pressed="${d === range[key]}"${d && d >= age ? " hidden" : ""}>${l}</button>`).join("");
+  box.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    range[key] = +b.dataset.d; box.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); redraw();
+  }));
+}
+
 function renderHash() {
   const z = zkasSeries(H), k = kaspaSeries(H);
   if (C.zkasHashrate) z.push([Date.now(), C.zkasHashrate]);
   if (C.kaspaHashrate) k.push([Date.now(), C.kaspaHashrate]);
   const share = z.map(([t, v]) => { const kv = interp(k, t); return [t, kv ? v / kv * 100 : 0]; });
+  if (!document.querySelector('.ranges[data-for="hash"] button')) buildRanges("hash", GENESIS, renderHash);
+  const x0 = rangeStart("hash", GENESIS);
   chart($("chartHash"), {
-    label: "ZKAS and Kaspa hashrate since launch, with ZKAS share of Kaspa", x0: GENESIS, x1: Date.now(), right: true,
+    label: "ZKAS and Kaspa hashrate, with ZKAS share of Kaspa", x0, x1: Date.now(), right: true,
     fmtL: v => v >= 1e18 ? (v / 1e18).toFixed(2) + " EH" : Math.round(v / 1e15) + " PH", fmtR: v => Math.round(v) + "%",
     series: [
-      {name: "Kaspa", data: k, color: "var(--kas)", fmt: hr},
-      {name: "ZKAS", data: z, color: "var(--zkas)", fmt: hr, area: true},
-      {name: "ZKAS share", data: share, color: "var(--share)", right: true, dash: true, fmt: v => v.toFixed(1) + "%"},
+      {name: "Kaspa", data: clip(k, x0), color: "var(--kas)", fmt: hr},
+      {name: "ZKAS", data: clip(z, x0), color: "var(--zkas)", fmt: hr, area: true},
+      {name: "ZKAS share", data: clip(share, x0), color: "var(--share)", right: true, dash: true, fmt: v => v.toFixed(1) + "%"},
     ],
   });
   const pills = [
@@ -586,10 +617,12 @@ function renderHash() {
 function renderPrice() {
   const {all, otcEnd} = priceSeries(H, C);
   if (!all.length) { $("chartPrice").innerHTML = '<p class="note">Price history is unavailable right now.</p>'; return; }
+  if (!document.querySelector('.ranges[data-for="price"] button')) buildRanges("price", all[0][0], renderPrice);
+  const x0 = rangeStart("price", all[0][0]), data = clip(all, x0);
   chart($("chartPrice"), {
-    label: "ZKAS price in US dollars since the first trade", right: false, band: otcEnd ? [all[0][0], otcEnd] : null,
+    label: "ZKAS price in US dollars", right: false, x0, x1: Date.now(), band: otcEnd && otcEnd > x0 ? [x0, otcEnd] : null,
     fmtL: v => "$" + (v < 0.01 ? v.toFixed(4) : v.toFixed(3)),
-    series: [{name: "ZKAS", data: all, color: "var(--zkas)", area: true, fmt: price}],
+    series: [{name: "ZKAS", data, color: "var(--zkas)", area: true, fmt: price}],
   });
 }
 
