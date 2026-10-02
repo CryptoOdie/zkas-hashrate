@@ -169,6 +169,41 @@ table.earn tr.total td{font-weight:600; color:var(--ink); border-bottom:2px soli
 .seg{display:inline-flex; background:var(--paper); border:1px solid var(--rule); border-radius:999px; padding:3px; font-family:var(--body)}
 .seg button{font:600 15px/1 var(--body); white-space:nowrap; padding:10px 14px; border:0; border-radius:999px; background:transparent; color:var(--muted); cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper)}
+.big{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:12px 24px; padding-bottom:18px; border-bottom:1px solid var(--rule); margin-bottom:16px}
+.big small{display:block; font-size:14px; color:var(--muted)}
+.big b{display:block; font-family:var(--display); font-weight:800; font-size:clamp(52px,9vw,104px); line-height:.95; letter-spacing:-.03em; color:#C9922E}
+.big span{display:block; font-size:14.5px; color:var(--muted); margin-top:6px}
+.bigx{font-family:var(--display); font-weight:800; font-size:clamp(28px,4vw,44px); color:var(--accent); background:var(--accent-soft); border-radius:14px; padding:10px 18px}
+.ladder{display:grid; gap:6px}
+.rung{display:grid; grid-template-columns:96px minmax(0,1fr) 128px; gap:14px; align-items:center; padding:8px 10px; border-radius:10px; border:1px solid transparent; background:none; font:inherit; color:inherit; text-align:left; cursor:pointer}
+.rung:hover{background:var(--paper)}
+.rung[aria-pressed="true"]{background:var(--paper); border-color:var(--accent)}
+.rung .m{font-family:var(--display); font-weight:800; font-size:20px}
+.rung .m small{display:block; font:500 11.5px var(--mono); color:var(--muted)}
+.rung .bar{height:26px; border-radius:6px; background:var(--accent-soft); overflow:hidden}
+.rung .bar i{display:block; height:100%; width:0; border-radius:6px; background:linear-gradient(90deg,var(--accent),#C9922E); transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.rung .v{text-align:right; font-family:var(--mono); font-weight:500; font-size:15px}
+.rung .v small{display:block; font-size:11.5px; color:var(--muted)}
+.custom{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin-top:16px; font-size:15px; color:var(--muted)}
+.custom .pricebox{font-family:var(--display); font-weight:700; font-size:24px}
+@media (max-width:520px){ .rung{grid-template-columns:70px minmax(0,1fr) 98px; gap:8px} .rung .v{font-size:13px} }
+.vsx{color:#C9922E}
+.vs-card{padding:26px}
+.vsrow{display:grid; grid-template-columns:70px minmax(0,1fr) 110px; gap:14px; align-items:center; margin-bottom:12px}
+.vsname{font-family:var(--display); font-weight:700; font-size:18px}
+.vsrow b{font-family:var(--mono); font-weight:500; text-align:right}
+.vsbar{height:46px; border-radius:8px; background:var(--paper); border:1px solid var(--rule); overflow:hidden}
+.vsbar i{display:block; height:100%; width:0; transition:width 1.6s cubic-bezier(.2,.8,.2,1)}
+.vsbar i.kas{background:var(--kas)}
+.vsbar i.zk{background:#C9922E; min-width:3px}
+.vs-h{font-size:22px; margin:26px 0 12px}
+.slices{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px}
+.slice{border:1px solid var(--rule); border-radius:12px; padding:14px; background:var(--paper); display:grid; gap:2px}
+.slice small{font-size:13px; color:var(--muted)}
+.slice b{font-family:var(--display); font-weight:800; font-size:24px; line-height:1.1}
+.slice span{font-family:var(--display); font-weight:800; font-size:18px; color:#C9922E}
+@media (max-width:860px){ .slices{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:520px){ .vsrow{grid-template-columns:54px minmax(0,1fr) 84px; gap:8px} .vs-card{padding:18px} }
 .mcapline{margin:14px 0 0; font-size:16px; color:var(--muted)}
 .mcapline b{font-family:var(--display); font-size:22px; color:var(--ink)}
 .answers{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px}
@@ -338,28 +373,17 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     </div>
   </section>
 
-  <section class="sec reveal" id="future" aria-labelledby="h-future">
+  <section class="sec reveal" id="versus" aria-labelledby="h-vs">
     <div class="sec-head">
-      <div class="eyebrow">Looking forward</div>
-      <h2 id="h-future">ZKAS future</h2>
+      <div class="eyebrow">Market cap</div>
+      <h2 id="h-vs">Kaspa is <span class="vsx num" id="vsX">&ndash;</span> bigger than ZKAS</h2>
     </div>
-    <div class="card fwd">
-      <p class="ask">If ZKAS reaches
-        <label class="pricebox"><span>$</span><input id="inP" type="number" step="0.001" min="0" inputmode="decimal" aria-label="ZKAS price"></label>
-        in
-        <span class="seg" id="segT" role="group" aria-label="When"><button type="button" data-m="3">3 months</button><button type="button" data-m="6" aria-pressed="true">6 months</button><button type="button" data-m="12">1 year</button></span>
-      </p>
-      <div class="chips" id="scenChips" aria-label="Quick prices">
-        <button class="chip" data-m="1">Today's price</button><button class="chip" data-m="2" aria-pressed="true">2&times;</button><button class="chip" data-m="5">5&times;</button><button class="chip" data-m="10">10&times;</button><button class="chip" data-m="20">20&times;</button><button class="chip" data-m="50">50&times;</button><button class="chip" data-m="100">100&times;</button>
-      </div>
-      <p class="mcapline" id="fMcap"></p>
-      <div class="answers">
-        <div class="ans hold"><small>Hold the ZKAS you mine</small><b class="num" id="oHold">&ndash;</b><span id="oHoldSub"></span></div>
-        <div class="ans sell"><small>Sell it as you mine</small><b class="num" id="oSell">&ndash;</b><span id="oSellSub"></span></div>
-      </div>
-      <p class="verdict" id="verdict"></p>
-      <div class="chart" id="chartFuture" style="height:200px"></div>
-      <p class="note" id="fwdNote"></p>
+    <div class="card vs-card">
+      <div class="vsrow"><span class="vsname">Kaspa</span><div class="vsbar"><i class="kas" id="vsKas"></i></div><b class="num" id="vsKasV">&ndash;</b></div>
+      <div class="vsrow"><span class="vsname">ZKAS</span><div class="vsbar"><i class="zk" id="vsZk"></i></div><b class="num" id="vsZkV">&ndash;</b></div>
+      <h3 class="vs-h">If ZKAS were worth a slice of Kaspa</h3>
+      <div class="slices" id="slices"></div>
+      <p class="note">Market caps from CoinGecko, live. ZKAS price for each slice uses today's circulating supply.</p>
     </div>
   </section>
 
@@ -431,7 +455,8 @@ async function loadLive() {
     halving: getJSON("https://explorer.zkas.info/api/info/halving"),
     pool: getJSON("https://mining-pool.zkas.info/api/stats"),
     otc: getJSON("https://mining-pool.zkas.info/api/otc/price"),
-    cg: getJSON("https://api.coingecko.com/api/v3/simple/price?ids=zkas,kaspa&vs_currencies=usd"),
+    cg: getJSON("https://api.coingecko.com/api/v3/simple/price?ids=zkas,kaspa&vs_currencies=usd&include_market_cap=true"),
+    ksup: getJSON("https://api.kaspa.org/info/coinsupply"),
     supply: getJSON("https://explorer.zkas.info/api/info/coinsupply"),
     kh: getJSON("https://api.kaspa.org/info/hashrate?stringOnly=false"),
     kr: getJSON("https://api.kaspa.org/info/blockreward"),
@@ -458,6 +483,9 @@ function current(H, L) {
     kaspaHashrate: L.kh ? L.kh.hashrate * 1e12 : s.kaspa.hashrate,
     kaspaReward: L.kr ? L.kr.blockreward : s.kaspa.reward,
     supply: L.supply ? Number(L.supply.circulatingSupply) / 1e8 : s.zkas.supply,
+    kaspaCap: L.cg && L.cg.kaspa ? L.cg.kaspa.usd_market_cap : null,
+    zkasCap: L.cg && L.cg.zkas ? L.cg.zkas.usd_market_cap : null,
+    kaspaSupply: L.ksup ? Number(L.ksup.circulatingSupply) / 1e8 : null,
   };
 }
 
@@ -765,53 +793,20 @@ function renderCalc() {
   $("cMonth").textContent = "+" + usd(e.zkUsd * 30.44, 0);
   const p1 = e.kasUsd - pow, p2 = p1 + e.zkUsd;
   $("cMonthTxt").textContent = p1 <= 0 && p2 > 0 ? "a month from ZKAS with zero extra power, which turns this rig from a loss into a profit" : "more per month from ZKAS, with zero extra power";
-  renderFuture();
 }
 
-let fwdMonths = 6;
-function renderFuture() {
-  // Always one full year of mining, so every choice is compared over the same time. The price climbs
-  // steadily to the target by the chosen date and stays there for the rest of the year.
-  const r = rig(), target = Math.max(0, +$("inP").value || 0) || C.zkasUsd, growth = 0.05;
-  const t0 = Date.now() / 1000, days = 365, reach = Math.round(fwdMonths * 30.44), end = t0 + days * 86400;
-  let zk = 0, sold = 0, emittedByReach = 0;
-  const hold = [], sell = [];
-  for (let d = 0; d <= days; d++) {
-    const t = t0 + d * 86400, f = Math.min(1, d / reach), p = C.zkasUsd * Math.pow(target / C.zkasUsd, f);
-    if (d > 0) {
-      const zh = C.zkasHashrate * Math.pow(1 + growth, (t - t0) / SECONDS_PER_MONTH);
-      const dz = r.h / (zh + r.h) * zkasRewardAt(C, t) * ZKAS_MINER_SHARE * 86400;
-      zk += dz; sold += dz * p;
-      if (d <= reach) emittedByReach += zkasRewardAt(C, t) * 86400;
-    }
-    hold.push([t * 1000, zk * p]); sell.push([t * 1000, sold]);
-  }
-  const H1 = zk * target, S1 = sold, when = fwdMonths === 12 ? "a year" : fwdMonths + " months";
-  if (C.supply) {
-    const sup = C.supply + emittedByReach;
-    $("fMcap").innerHTML = `That's a market cap of <b class="num">${bigUsd(target * sup)}</b>` +
-      ` with ${(sup / 1e6).toFixed(0)}M ZKAS in circulation then. Today it's ${bigUsd(C.zkasUsd * C.supply)}.`;
-  }
-  $("oHold").textContent = usd(H1, 0); $("oHoldSub").textContent = `${coins(zk)} ZKAS after a year, at ${price(target)}`;
-  $("oSell").textContent = usd(S1, 0); $("oSellSub").textContent = `sold day by day over the year`;
-  $("verdict").innerHTML = target > C.zkasUsd
-    ? `After a year of mining, holding comes out <b>${usd(H1 - S1, 0)}</b> ahead. The sooner the price gets there, the more selling earns too. All on top of what your rig already earns from Kaspa, with no extra power.`
-    : target < C.zkasUsd ? `Selling as you mine comes out <b>${usd(S1 - H1, 0)}</b> ahead if the price falls.` : `At today's price, holding and selling end up about the same.`;
-  $("fwdNote").textContent = `One year of mining with your rig from above (${hr(r.h)}). The price climbs steadily from today's ${price(C.zkasUsd)} to your target in ${when}, then stays there. Assumes ZKAS network hashrate grows 5% a month. Includes ZKAS's scheduled reward step-downs.`;
-  chart($("chartFuture"), {
-    label: "Value of a year of ZKAS mining: holding versus selling", x0: t0 * 1000, x1: end * 1000,
-    fmtL: v => v >= 1000 ? "$" + (v / 1000).toFixed(v >= 10000 ? 0 : 1) + "k" : usd(v, 0),
-    series: [
-      {name: "Sell as you mine", data: sell, color: "var(--sell)", fmt: v => usd(v, 0)},
-      {name: "Hold", data: hold, color: "var(--hold)", area: true, fmt: v => usd(v, 0)},
-    ],
-  });
-}
-
-function setScenario(m) {
-  $("inP").value = +(C.zkasUsd * m).toPrecision(2);
-  document.querySelectorAll("#scenChips .chip").forEach(c => c.setAttribute("aria-pressed", +c.dataset.m === m));
-  renderFuture();
+function renderVersus() {
+  const kCap = C.kaspaCap || (C.kasUsd * (C.kaspaSupply || 0)), zCap = C.zkasCap || (C.zkasUsd * (C.supply || 0));
+  if (!(kCap > 0 && zCap > 0)) return;
+  const x = kCap / zCap;
+  $("vsX").textContent = Math.round(x).toLocaleString("en-US") + "\u00d7";
+  $("vsKasV").textContent = bigUsd(kCap); $("vsZkV").textContent = bigUsd(zCap);
+  const grow = () => { $("vsKas").style.width = "100%"; $("vsZk").style.width = Math.max(0.3, zCap / kCap * 100) + "%"; };
+  if ($("versus").classList.contains("in") || reduce) requestAnimationFrame(() => requestAnimationFrame(grow)); else $("versus")._grow = grow;
+  $("slices").innerHTML = [1, 5, 10, 25, 50].map(pct => {
+    const cap = kCap * pct / 100, px = C.supply ? cap / C.supply : 0, mult = cap / zCap;
+    return `<div class="slice"><small>${pct}% of Kaspa</small><b class="num">${px ? price(px) : bigUsd(cap)}</b><span class="num">${Math.round(mult).toLocaleString("en-US")}\u00d7</span></div>`;
+  }).join("");
 }
 
 function wire() {
@@ -820,16 +815,12 @@ function wire() {
     document.querySelectorAll("#hChips .chip").forEach(x => x.setAttribute("aria-pressed", x === c)); renderCalc();
   }));
   ["inH", "inW", "inE"].forEach(id => $(id).addEventListener("input", () => { document.querySelectorAll("#hChips .chip").forEach(x => x.setAttribute("aria-pressed", x.dataset.h === $("inH").value)); renderCalc(); }));
-  document.querySelectorAll("#scenChips .chip").forEach(c => c.addEventListener("click", () => setScenario(+c.dataset.m)));
-  $("inP").addEventListener("input", () => { document.querySelectorAll("#scenChips .chip").forEach(x => x.setAttribute("aria-pressed", false)); renderFuture(); });
-  document.querySelectorAll("#segT button").forEach(b => b.addEventListener("click", () => {
-    fwdMonths = +b.dataset.m; document.querySelectorAll("#segT button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderFuture();
-  }));
+
 }
 
 /* scroll: progress bar, reveals, chart draw-in */
 function scrollFx() {
-  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); e.target.querySelectorAll(".chart").forEach(c => c.classList.add("in")); io.unobserve(e.target); } }), {threshold: .18});
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); e.target.querySelectorAll(".chart").forEach(c => c.classList.add("in")); if (e.target._grow) { e.target._grow(); e.target._grow = null; } io.unobserve(e.target); } }), {threshold: .18});
   document.querySelectorAll(".reveal").forEach(el => io.observe(el));
   const p = $("progress");
   const onScroll = () => { const h = document.documentElement; p.style.setProperty("--p", (h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight) * 100) + "%"); };
@@ -883,8 +874,8 @@ function heroCanvas() {
   C = current(H, live);
   if (!C.zkasHashrate || !C.kaspaHashrate || !C.zkasUsd || !C.kasUsd) { $("asof").textContent = "Live data is unavailable right now. Try again in a minute."; return; }
   renderHero(); renderHash(); renderPrice(); renderCap();
-  setScenario(2); renderCalc();
-  setInterval(async () => { const L = await loadLive(); const n = current(H, L); if (n.zkasHashrate && n.zkasUsd) { C = n; renderHero(); renderCalc(); } }, 120000);
+  renderVersus(); renderCalc();
+  setInterval(async () => { const L = await loadLive(); const n = current(H, L); if (n.zkasHashrate && n.zkasUsd) { C = n; renderHero(); renderCalc(); renderVersus(); } }, 120000);
 })();
 </script>
 </body>
