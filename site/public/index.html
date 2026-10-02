@@ -299,13 +299,14 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
       <div class="card inputs">
         <div class="field">
           <label for="inH">Hashrate <output>TH/s</output></label>
-          <input type="number" id="inH" min="0.01" step="0.1" value="15">
+          <input type="number" id="inH" min="0.1" step="1" value="10">
           <div class="chips" id="hChips">
-            <button class="chip" data-h="1">1 TH/s</button><button class="chip" data-h="6">6 TH/s</button>
-            <button class="chip" data-h="15" aria-pressed="true">15 TH/s</button><button class="chip" data-h="40">40 TH/s</button><button class="chip" data-h="100">100 TH/s</button>
+            <button class="chip" data-h="1">1 TH/s</button><button class="chip" data-h="5">5 TH/s</button>
+            <button class="chip" data-h="10" aria-pressed="true">10 TH/s</button><button class="chip" data-h="20">20 TH/s</button>
+            <button class="chip" data-h="50">50 TH/s</button><button class="chip" data-h="100">100 TH/s</button>
           </div>
         </div>
-        <div class="field"><label for="inW">Power draw <output>watts</output></label><input type="number" id="inW" min="0" step="50" value="3400"></div>
+        <div class="field"><label for="inW">Power draw <output>watts</output></label><input type="number" id="inW" min="0" step="100" value="2300"></div>
         <div class="field"><label for="inE">Electricity <output>$ per kWh</output></label><input type="number" id="inE" min="0" step="0.01" value="0.07"></div>
       </div>
       <div class="card">
@@ -806,7 +807,7 @@ function setScenario(m) {
 
 function wire() {
   document.querySelectorAll("#hChips .chip").forEach(c => c.addEventListener("click", () => {
-    $("inH").value = c.dataset.h; $("inW").value = Math.round(c.dataset.h * 227 / 50) * 50 || 50;
+    $("inH").value = c.dataset.h; $("inW").value = Math.round(c.dataset.h * 230 / 100) * 100 || 100;
     document.querySelectorAll("#hChips .chip").forEach(x => x.setAttribute("aria-pressed", x === c)); renderCalc();
   }));
   ["inH", "inW", "inE"].forEach(id => $(id).addEventListener("input", () => { document.querySelectorAll("#hChips .chip").forEach(x => x.setAttribute("aria-pressed", x.dataset.h === $("inH").value)); renderCalc(); }));
