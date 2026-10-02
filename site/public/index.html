@@ -247,7 +247,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     <div class="sec-head">
       <div class="eyebrow">Since launch &middot; 26 July 2026</div>
       <h2 id="h-price">ZKAS price, in dollars</h2>
-      <p>The first trade was on 23 August. Before that there was no market, so the dashed stretch from launch is an estimate, not a traded price. From the first trade: the OTC desk, then NonKYC and Neoxa, then CoinGecko.</p>
+      <p>Exchange prices: Neoxa and NonKYC from 14 September, then CoinGecko. The dashed stretch from launch to the first listing is an estimate, not a traded price.</p>
     </div>
     <div class="card">
       <div class="card-top">
@@ -257,7 +257,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
         <div class="ranges" role="group" aria-label="Time range" data-for="price"></div>
       </div>
       <div class="chart" id="chartPrice"></div>
-      <p class="note">Until exchanges listed ZKAS on 14 September, the price is the community OTC desk's daily average, quoted in KAS and converted at that day's KAS price. From 28 September it is CoinGecko's price across exchanges.</p>
+      <p class="note">Solid line: exchange prices (Neoxa and NonKYC, weighted by volume, then CoinGecko from 28 September). Dashed: estimate before the first listing.</p>
     </div>
   </section>
 
@@ -509,12 +509,12 @@ function priceSeries(H, C) {
   const cg = (H.coingeckoZkas || []).map(p => [p.t, p.usd]).filter(p => p[1] > 0);
   // One price line: OTC desk until the first exchange listing, exchanges until CoinGecko, then CoinGecko.
   const listed = ex.length ? ex[0][0] : Infinity, cgFrom = cg.length ? cg[0][0] : Infinity;
-  const series = otc.filter(p => p[0] < listed).concat(ex.filter(p => p[0] < cgFrom), cg);
+  const series = ex.filter(p => p[0] < cgFrom).concat(cg);
   if (C.zkasUsd) series.push([Date.now(), C.zkasUsd]);
   return {series, est: estimateBeforeFirstTrade(series)};
 }
 
-/* ESTIMATE, not traded prices: there was no market before the first trade on 23 August. From launch
+/* ESTIMATE, not traded prices: from launch to the first exchange listing (14 September). From launch
    it climbs on a log scale from 2% of the first traded price to meet it exactly, with smooth,
    deterministic wobble so it looks like a market. Drawn dashed and labelled as an estimate. */
 function estimateBeforeFirstTrade(series) {
@@ -674,7 +674,7 @@ function renderPrice() {
   if (C.zkasUsd) $("pNow").textContent = price(C.zkasUsd);
   chart($("chartPrice"), {
     label: "ZKAS price in US dollars since launch", right: false, x0, x1: Date.now(),
-    band: x0 < firstTrade ? [x0, firstTrade] : null, bandLabel: ["ESTIMATE", "before the first trade"],
+    band: x0 < firstTrade ? [x0, firstTrade] : null, bandLabel: ["ESTIMATE", "before the first listing"],
     fmtL: v => "$" + (v < 0.01 ? v.toFixed(4) : v.toFixed(3)),
     series: [
       {name: "Estimate", data: clip(est, x0), color: "var(--zkas)", dash: true, area: true, fmt: v => price(v) + " (est.)", tipBefore: firstTrade},
