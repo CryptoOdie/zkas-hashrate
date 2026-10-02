@@ -151,6 +151,13 @@ def main():
                        for c in neoxa["candles"]})
         data["neoxaDaily"] = sorted(merged.values(), key=lambda c: c["t"])
 
+    # ZKAS/USD from CoinGecko (aggregated across exchanges; listed 28 September 2026), hourly.
+    cgz = get("https://api.coingecko.com/api/v3/coins/zkas/market_chart?vs_currency=usd&days=90")
+    if cgz and cgz.get("prices"):
+        merged = {p["t"]: p for p in data.get("coingeckoZkas", [])}
+        merged.update({int(t): {"t": int(t), "usd": usd} for t, usd in cgz["prices"]})
+        data["coingeckoZkas"] = sorted(merged.values(), key=lambda p: p["t"])
+
     # KAS/USD per day, to put the earlier OTC prices (quoted in KAS) into dollars.
     cg = get("https://api.coingecko.com/api/v3/coins/kaspa/market_chart?vs_currency=usd&days=120&interval=daily")
     if cg and cg.get("prices"):

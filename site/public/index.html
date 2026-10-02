@@ -247,18 +247,17 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     <div class="sec-head">
       <div class="eyebrow">Since the first trade &middot; 23 August 2026</div>
       <h2 id="h-price">ZKAS price, in dollars</h2>
-      <p>Every trade on the community OTC desk since the very first one, priced in KAS and converted at that day's KAS price, next to the exchange price since ZKAS listed on Neoxa on 14 September (and NonKYC from 25 September). ZKAS launched on 26 July; the first trade anywhere was on 23 August.</p>
+      <p>From the first trade to today: the OTC desk before ZKAS was listed, then NonKYC and Neoxa, then CoinGecko.</p>
     </div>
     <div class="card">
       <div class="card-top">
         <div class="legend">
-          <span style="color:var(--zkas)"><i style="background:var(--zkas)"></i>OTC desk <b class="num" id="pOtc"></b></span>
-          <span style="color:var(--kas)"><i class="dash" style="color:var(--kas)"></i>Exchanges <b class="num" id="pEx"></b></span>
+          <span style="color:var(--zkas)"><i style="background:var(--zkas)"></i>ZKAS / USD <b class="num" id="pNow"></b></span>
         </div>
         <div class="ranges" role="group" aria-label="Time range" data-for="price"></div>
       </div>
       <div class="chart" id="chartPrice"></div>
-      <p class="note" id="priceNote"></p>
+      <p class="note">ZKAS launched on 26 July; the first trade anywhere was on 23 August. Until exchanges listed it on 14 September, the price is the community OTC desk's daily average, quoted in KAS and converted at that day's KAS price. From 28 September it is CoinGecko's price across exchanges.</p>
     </div>
   </section>
 
@@ -356,7 +355,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
 
   <footer>
     <span>Independent. Not affiliated with the ZKAS project or the Kaspa developers. Nothing here is investment advice: projections are scenarios you set, not forecasts.</span>
-    <span>Data: <a href="https://explorer.zkas.info">explorer.zkas.info</a>, <a href="https://mining-pool.zkas.info">mining-pool.zkas.info</a>, <a href="https://nonkyc.io">NonKYC</a>, <a href="https://api.kaspa.org">api.kaspa.org</a>, <a href="https://www.coingecko.com">CoinGecko</a>. Collected hourly by <a href="https://github.com/CryptoOdie/zkas-hashrate">github.com/CryptoOdie/zkas-hashrate</a>.</span>
+    <span>Data: <a href="https://explorer.zkas.info">explorer.zkas.info</a>, <a href="https://mining-pool.zkas.info">mining-pool.zkas.info</a>, <a href="https://nonkyc.io">NonKYC</a>, <a href="https://neoxa.exchange">Neoxa</a>, <a href="https://api.kaspa.org">api.kaspa.org</a>, <a href="https://www.coingecko.com">CoinGecko</a>. Collected hourly by <a href="https://github.com/CryptoOdie/zkas-hashrate">github.com/CryptoOdie/zkas-hashrate</a>.</span>
   </footer>
 </main>
 
@@ -400,6 +399,7 @@ async function loadHistory() {
   out.nonkycDaily = union("nonkycDaily", c => c.t).sort((a, b) => a.t - b.t);
   out.kasUsdDaily = union("kasUsdDaily", p => p.t).sort((a, b) => a.t - b.t);
   out.neoxaDaily = union("neoxaDaily", c => c.t).sort((a, b) => a.t - b.t);
+  out.coingeckoZkas = union("coingeckoZkas", p => p.t).sort((a, b) => a.t - b.t);
   out.otcTrades = (() => { const m = new Map(); for (const g of got) for (const x of g.otcTrades || []) m.set(x[0], x); return [...m.values()].sort((a, b) => a[0] - b[0]); })();
   return out;
 }
@@ -409,6 +409,7 @@ async function loadLive() {
     halving: getJSON("https://explorer.zkas.info/api/info/halving"),
     pool: getJSON("https://mining-pool.zkas.info/api/stats"),
     otc: getJSON("https://mining-pool.zkas.info/api/otc/price"),
+    cg: getJSON("https://api.coingecko.com/api/v3/simple/price?ids=zkas,kaspa&vs_currencies=usd"),
     kh: getJSON("https://api.kaspa.org/info/hashrate?stringOnly=false"),
     kr: getJSON("https://api.kaspa.org/info/blockreward"),
     kp: getJSON("https://api.kaspa.org/info/price"),
@@ -429,7 +430,7 @@ function current(H, L) {
     poolHashrate: L.pool ? L.pool.networkHashrate : s.zkas.pool,
     zkasReward: L.halving ? L.halving.currentAmount : s.zkas.reward,
     nextReduction: L.halving ? L.halving.nextHalvingTimestamp : s.zkas.nextReductionTs,
-    zkasUsd: L.otc ? L.otc.zkasUsd : s.price.zkasUsd,
+    zkasUsd: L.cg && L.cg.zkas ? L.cg.zkas.usd : L.otc ? L.otc.zkasUsd : s.price.zkasUsd,
     kasUsd: L.otc ? L.otc.kasUsd : (L.kp ? L.kp.price : s.price.kasUsd),
     kaspaHashrate: L.kh ? L.kh.hashrate * 1e12 : s.kaspa.hashrate,
     kaspaReward: L.kr ? L.kr.blockreward : s.kaspa.reward,
@@ -496,9 +497,6 @@ function priceSeries(H, C) {
     a[0] += p * q; a[1] += q; days.set(d, a);
   }
   const otc = [...days].sort((a, b) => a[0] - b[0]).map(([d, [pq, q]]) => [Math.min(d, Date.now()), pq / q * kasAt(d)]);
-  const trades = (H.otcTrades || []).filter(x => x[1] > 0);
-  const lastOtc = trades.length ? trades[trades.length - 1] : null;
-  if (lastOtc) otc.push([Math.max(lastOtc[0], otc.length ? otc[otc.length - 1][0] + 1 : 0), lastOtc[1] * C.kasUsd]);
   // Exchanges: each day's closes from Neoxa and NonKYC, weighted by that day's volume, then the live price.
   const exDays = new Map();
   for (const c of [...(H.neoxaDaily || []), ...(H.nonkycDaily || [])]) {
@@ -507,8 +505,13 @@ function priceSeries(H, C) {
     a[0] += c.c * w; a[1] += w; exDays.set(d, a);
   }
   const ex = [...exDays].sort((a, b) => a[0] - b[0]).map(([d, [pw, w]]) => [d, pw / w]).filter(p => p[0] < Date.now());
-  if (C.zkasUsd) ex.push([Date.now(), C.zkasUsd]);
-  return {otc, ex, otcNow: lastOtc ? lastOtc[1] * C.kasUsd : null, otcKas: lastOtc ? lastOtc[1] : null, trades: trades.length};
+  // CoinGecko: aggregated across exchanges, hourly, from its listing on 28 September.
+  const cg = (H.coingeckoZkas || []).map(p => [p.t, p.usd]).filter(p => p[1] > 0);
+  // One price line: OTC desk until the first exchange listing, exchanges until CoinGecko, then CoinGecko.
+  const listed = ex.length ? ex[0][0] : Infinity, cgFrom = cg.length ? cg[0][0] : Infinity;
+  const series = otc.filter(p => p[0] < listed).concat(ex.filter(p => p[0] < cgFrom), cg);
+  if (C.zkasUsd) series.push([Date.now(), C.zkasUsd]);
+  return {series};
 }
 
 /* ---------- chart ---------- */
@@ -639,22 +642,16 @@ function renderHash() {
 }
 
 function renderPrice() {
-  const {otc, ex, otcNow, otcKas, trades} = priceSeries(H, C);
-  if (!otc.length && !ex.length) { $("chartPrice").innerHTML = '<p class="note">Price history is unavailable right now.</p>'; return; }
-  const first = Math.min(otc.length ? otc[0][0] : Infinity, ex.length ? ex[0][0] : Infinity);
+  const {series} = priceSeries(H, C);
+  if (!series.length) { $("chartPrice").innerHTML = '<p class="note">Price history is unavailable right now.</p>'; return; }
+  const first = series[0][0];
   if (!document.querySelector('.ranges[data-for="price"] button')) buildRanges("price", first, renderPrice);
   const x0 = rangeStart("price", first);
-  if (otcNow) $("pOtc").textContent = price(otcNow);
-  if (C.zkasUsd) $("pEx").textContent = price(C.zkasUsd);
-  $("priceNote").textContent = `${trades.toLocaleString("en-US")} OTC trades since 23 August.` + (otcKas ? ` Last OTC trade ${otcKas.toFixed(4)} KAS.` : "") +
-    " Earnings on this page use the exchange price, the lower of the two.";
+  if (C.zkasUsd) $("pNow").textContent = price(C.zkasUsd);
   chart($("chartPrice"), {
-    label: "ZKAS price in US dollars on the OTC desk and on exchanges", right: false, x0, x1: Date.now(),
+    label: "ZKAS price in US dollars since the first trade", right: false, x0, x1: Date.now(),
     fmtL: v => "$" + (v < 0.01 ? v.toFixed(4) : v.toFixed(3)),
-    series: [
-      {name: "Exchanges", data: clip(ex, x0), color: "var(--kas)", dash: true, fmt: price},
-      {name: "OTC desk", data: clip(otc, x0), color: "var(--zkas)", area: true, fmt: price},
-    ],
+    series: [{name: "ZKAS", data: clip(series, x0), color: "var(--zkas)", area: true, fmt: price}],
   });
 }
 
