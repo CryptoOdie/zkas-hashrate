@@ -189,21 +189,23 @@ table.earn tr.total td{font-weight:600; color:var(--ink); border-bottom:2px soli
 @media (max-width:520px){ .rung{grid-template-columns:70px minmax(0,1fr) 98px; gap:8px} .rung .v{font-size:13px} }
 .vsx{color:#C9922E}
 .vs-card{padding:26px}
-.vsrow{display:grid; grid-template-columns:70px minmax(0,1fr) 110px; gap:14px; align-items:center; margin-bottom:12px}
+.vsrow{display:grid; grid-template-columns:76px minmax(0,1fr) 150px; gap:14px; align-items:center; margin-bottom:12px}
 .vsname{font-family:var(--display); font-weight:700; font-size:18px}
 .vsrow b{font-family:var(--mono); font-weight:500; text-align:right}
+.vsrow b small{display:block; font-size:12px; color:var(--muted); font-weight:400}
+.vsbar i.xmr{background:#E0782F} .vsbar i.zec{background:#C2A04A}
 .vsbar{height:46px; border-radius:8px; background:var(--paper); border:1px solid var(--rule); overflow:hidden}
 .vsbar i{display:block; height:100%; width:0; transition:width 1.6s cubic-bezier(.2,.8,.2,1)}
 .vsbar i.kas{background:var(--kas)}
 .vsbar i.zk{background:#C9922E; min-width:3px}
 .vs-h{font-size:22px; margin:26px 0 12px}
-.slices{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px}
+.slices{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px}
 .slice{border:1px solid var(--rule); border-radius:12px; padding:14px; background:var(--paper); display:grid; gap:2px}
 .slice small{font-size:13px; color:var(--muted)}
 .slice b{font-family:var(--display); font-weight:800; font-size:24px; line-height:1.1}
 .slice span{font-family:var(--display); font-weight:800; font-size:18px; color:#C9922E}
 @media (max-width:860px){ .slices{grid-template-columns:repeat(2,minmax(0,1fr))} }
-@media (max-width:520px){ .vsrow{grid-template-columns:54px minmax(0,1fr) 84px; gap:8px} .vs-card{padding:18px} }
+@media (max-width:520px){ .vsrow{grid-template-columns:58px minmax(0,1fr) 110px; gap:8px} .vs-card{padding:18px} }
 .mcapline{margin:14px 0 0; font-size:16px; color:var(--muted)}
 .mcapline b{font-family:var(--display); font-size:22px; color:var(--ink)}
 .answers{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px}
@@ -379,11 +381,10 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
       <h2 id="h-vs">Kaspa is <span class="vsx num" id="vsX">&ndash;</span> bigger than ZKAS</h2>
     </div>
     <div class="card vs-card">
-      <div class="vsrow"><span class="vsname">Kaspa</span><div class="vsbar"><i class="kas" id="vsKas"></i></div><b class="num" id="vsKasV">&ndash;</b></div>
-      <div class="vsrow"><span class="vsname">ZKAS</span><div class="vsbar"><i class="zk" id="vsZk"></i></div><b class="num" id="vsZkV">&ndash;</b></div>
-      <h3 class="vs-h">If ZKAS were worth a slice of Kaspa</h3>
+      <div id="vsRows"></div>
+      <h3 class="vs-h">What ZKAS would be worth at their size</h3>
       <div class="slices" id="slices"></div>
-      <p class="note">Market caps from CoinGecko, live. ZKAS price for each slice uses today's circulating supply.</p>
+      <p class="note">Market caps from CoinGecko, live. Each ZKAS price uses today's circulating supply.</p>
     </div>
   </section>
 
@@ -455,7 +456,7 @@ async function loadLive() {
     halving: getJSON("https://explorer.zkas.info/api/info/halving"),
     pool: getJSON("https://mining-pool.zkas.info/api/stats"),
     otc: getJSON("https://mining-pool.zkas.info/api/otc/price"),
-    cg: getJSON("https://api.coingecko.com/api/v3/simple/price?ids=zkas,kaspa&vs_currencies=usd&include_market_cap=true"),
+    cg: getJSON("https://api.coingecko.com/api/v3/simple/price?ids=zkas,kaspa,zcash,monero&vs_currencies=usd&include_market_cap=true"),
     ksup: getJSON("https://api.kaspa.org/info/coinsupply"),
     supply: getJSON("https://explorer.zkas.info/api/info/coinsupply"),
     kh: getJSON("https://api.kaspa.org/info/hashrate?stringOnly=false"),
@@ -485,6 +486,8 @@ function current(H, L) {
     supply: L.supply ? Number(L.supply.circulatingSupply) / 1e8 : s.zkas.supply,
     kaspaCap: L.cg && L.cg.kaspa ? L.cg.kaspa.usd_market_cap : null,
     zkasCap: L.cg && L.cg.zkas ? L.cg.zkas.usd_market_cap : null,
+    zcashCap: L.cg && L.cg.zcash ? L.cg.zcash.usd_market_cap : null,
+    moneroCap: L.cg && L.cg.monero ? L.cg.monero.usd_market_cap : null,
     kaspaSupply: L.ksup ? Number(L.ksup.circulatingSupply) / 1e8 : null,
   };
 }
@@ -796,16 +799,23 @@ function renderCalc() {
 }
 
 function renderVersus() {
-  const kCap = C.kaspaCap || (C.kasUsd * (C.kaspaSupply || 0)), zCap = C.zkasCap || (C.zkasUsd * (C.supply || 0));
+  const zCap = C.zkasCap || (C.zkasUsd * (C.supply || 0));
+  const kCap = C.kaspaCap || (C.kasUsd * (C.kaspaSupply || 0));
   if (!(kCap > 0 && zCap > 0)) return;
-  const x = kCap / zCap;
-  $("vsX").textContent = Math.round(x).toLocaleString("en-US") + "\u00d7";
-  $("vsKasV").textContent = bigUsd(kCap); $("vsZkV").textContent = bigUsd(zCap);
-  const grow = () => { $("vsKas").style.width = "100%"; $("vsZk").style.width = Math.max(0.3, zCap / kCap * 100) + "%"; };
+  const rows = [
+    ["Zcash", C.zcashCap, "zec"], ["Monero", C.moneroCap, "xmr"], ["Kaspa", kCap, "kas"], ["ZKAS", zCap, "zk"],
+  ].filter(r => r[1] > 0);
+  const max = Math.max(...rows.map(r => r[1]));
+  $("vsX").textContent = Math.round(kCap / zCap).toLocaleString("en-US") + "\u00d7";
+  $("vsRows").innerHTML = rows.map(([n, cap, cls]) => `<div class="vsrow"><span class="vsname">${n}</span>
+      <div class="vsbar"><i class="${cls}" data-w="${Math.max(0.3, cap / max * 100)}"></i></div>
+      <b class="num">${bigUsd(cap)}${cls === "zk" ? "" : `<small>${Math.round(cap / zCap).toLocaleString("en-US")}\u00d7 ZKAS</small>`}</b></div>`).join("");
+  const grow = () => document.querySelectorAll("#vsRows .vsbar i").forEach(i => i.style.width = i.dataset.w + "%");
   if ($("versus").classList.contains("in") || reduce) requestAnimationFrame(() => requestAnimationFrame(grow)); else $("versus")._grow = grow;
-  $("slices").innerHTML = [1, 5, 10, 25, 50].map(pct => {
-    const cap = kCap * pct / 100, px = C.supply ? cap / C.supply : 0, mult = cap / zCap;
-    return `<div class="slice"><small>${pct}% of Kaspa</small><b class="num">${px ? price(px) : bigUsd(cap)}</b><span class="num">${Math.round(mult).toLocaleString("en-US")}\u00d7</span></div>`;
+  const targets = [["10% of Kaspa", kCap * 0.1], ["Kaspa's size", kCap], ["Monero's size", C.moneroCap], ["Zcash's size", C.zcashCap]].filter(t => t[1] > 0);
+  $("slices").innerHTML = targets.map(([label, cap]) => {
+    const px = C.supply ? cap / C.supply : 0;
+    return `<div class="slice"><small>${label}</small><b class="num">${px ? price(px) : bigUsd(cap)}</b><span class="num">${Math.round(cap / zCap).toLocaleString("en-US")}\u00d7</span></div>`;
   }).join("");
 }
 
