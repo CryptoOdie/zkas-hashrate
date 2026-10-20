@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ZKAS Merged Mining</title>
+<link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <meta name="description" content="ZKAS is private digital cash built to be spent. Mine it alongside Kaspa with the same hashrate. Live earnings boost, ZKAS hashrate and price since launch, and a profitability calculator with price scenarios.">
@@ -11,20 +12,20 @@
 <meta property="og:description" content="What merged-mining ZKAS adds to a Kaspa miner, live. Hashrate and price since launch, plus a hold-vs-sell profitability planner.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://zkas-mining.web.app/">
-<meta property="og:image" content="https://zkas-mining.web.app/og.png?v=3">
+<meta property="og:image" content="https://zkas-mining.web.app/og.png?v=4">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta name="twitter:image" content="https://zkas-mining.web.app/og.png?v=3">
+<meta name="twitter:image" content="https://zkas-mining.web.app/og.png?v=4">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
-  --paper:#ECEEE8; --surface:#F8F9F5; --ink:#16202A; --muted:#55626B; --rule:#C8CEC5;
-  --accent:#1E6F64; --accent-soft:#D6E6E1; --stamp:#9A3324;
-  --kas:#4A7FB0; --zkas:#1E6F64; --share:#C2672F; --hold:#1E6F64; --sell:#8A6D1E; --base:#7C8790;
-  --night:#0E1418; --night-2:#141C21; --night-ink:#E6ECE6; --night-muted:#93A3A0; --night-rule:#25323A;
+  --paper:#F5F3F3; --surface:#FCFBFB; --ink:#131313; --muted:#5A5E5D; --rule:#D9D4D5;
+  --accent:#A94B60; --accent-soft:#F3E2E6; --stamp:#9A3324;
+  --kas:#2F8C80; --zkas:#B4566C; --share:#7D7477; --hold:#B4566C; --sell:#8A6D1E; --base:#7C8382;
+  --night:#1B1E1D; --night-2:#242827; --night-ink:#ECEAEA; --night-muted:#A3A6A5; --night-rule:#343938;
   --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
   --body:"IBM Plex Sans","Segoe UI",system-ui,-apple-system,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
@@ -32,18 +33,18 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --paper:#0F1519; --surface:#151D22; --ink:#E3E8E2; --muted:#93A09D; --rule:#29353A;
-    --accent:#62B4A6; --accent-soft:#1B3330; --stamp:#E07A68;
-    --kas:#78A9D6; --zkas:#62B4A6; --share:#E39461; --hold:#62B4A6; --sell:#D1B25A; --base:#8796A0;
-    --night:#0A0F12; --night-2:#10171B;
+    --paper:#1C1F1E; --surface:#242827; --ink:#ECEAEA; --muted:#9DA19F; --rule:#343938;
+    --accent:#E7A9B4; --accent-soft:#3A2B30; --stamp:#E07A68;
+    --kas:#70C7BA; --zkas:#E7A9B4; --share:#B8AFB2; --hold:#E7A9B4; --sell:#D1B25A; --base:#8E9391;
+    --night:#161918; --night-2:#1C1F1E;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --paper:#0F1519; --surface:#151D22; --ink:#E3E8E2; --muted:#93A09D; --rule:#29353A;
-  --accent:#62B4A6; --accent-soft:#1B3330; --stamp:#E07A68;
-  --kas:#78A9D6; --zkas:#62B4A6; --share:#E39461; --hold:#62B4A6; --sell:#D1B25A; --base:#8796A0;
-  --night:#0A0F12; --night-2:#10171B;
+  --paper:#1C1F1E; --surface:#242827; --ink:#ECEAEA; --muted:#9DA19F; --rule:#343938;
+  --accent:#E7A9B4; --accent-soft:#3A2B30; --stamp:#E07A68;
+  --kas:#70C7BA; --zkas:#E7A9B4; --share:#B8AFB2; --hold:#E7A9B4; --sell:#D1B25A; --base:#8E9391;
+  --night:#161918; --night-2:#1C1F1E;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -74,13 +75,13 @@ h2{font-weight:700; font-size:clamp(30px,4.4vw,46px); line-height:1.04}
 .tagline{margin:0; font-family:var(--display); font-weight:700; font-size:clamp(15px,2vw,20px); line-height:1.25; color:var(--night-ink)}
 .brand{display:flex; align-items:center; gap:14px; margin-bottom:-8px}
 .brand img{width:clamp(44px,6vw,64px); height:auto}
-.brand span{font-family:var(--display); font-weight:800; font-size:clamp(34px,5.2vw,58px); letter-spacing:-.01em; line-height:1; color:#7FD1C1}
+.brand span{font-family:var(--display); font-weight:800; font-size:clamp(34px,5.2vw,58px); letter-spacing:-.01em; line-height:1; color:var(--night-ink)}
 .hero h1{font-weight:800; font-size:clamp(40px,7vw,88px); line-height:.95; letter-spacing:-.025em; max-width:12ch}
-.hero h1 em{font-style:normal; color:#7FD1C1}
+.hero h1 em{font-style:normal; color:#E7A9B4}
 .hero .lede{font-size:clamp(17px,2vw,21px); color:var(--night-muted); max-width:56ch; margin:0}
 .boost{display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px 28px; align-items:end; margin-top:6px;
   background:color-mix(in srgb, var(--night-2) 82%, transparent); border:1px solid var(--night-rule); border-radius:16px; padding:24px 26px; backdrop-filter:blur(6px)}
-.boost-num{font-family:var(--display); font-weight:800; font-size:clamp(64px,13vw,150px); line-height:.82; letter-spacing:-.035em; color:#F2C46D}
+.boost-num{font-family:var(--display); font-weight:800; font-size:clamp(64px,13vw,150px); line-height:.82; letter-spacing:-.035em; color:var(--night-ink)}
 .boost-txt{display:grid; gap:4px; padding-bottom:8px}
 .boost-txt b{font-family:var(--display); font-size:clamp(20px,2.6vw,28px); line-height:1.1}
 .boost-txt span{color:var(--night-muted); font-size:14.5px}
@@ -91,7 +92,7 @@ h2{font-weight:700; font-size:clamp(30px,4.4vw,46px); line-height:1.04}
 .track{height:22px; border-radius:6px; background:#ffffff0d; display:flex; overflow:hidden}
 .seg{height:100%; width:0; transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
 .seg.kas{background:var(--kas)}
-.seg.zk{background:repeating-linear-gradient(135deg,#7FD1C1 0 6px,#5FB8A8 6px 12px)}
+.seg.zk{background:repeating-linear-gradient(135deg,#E7A9B4 0 6px,#C98C99 6px 12px)}
 .asof{font-family:var(--mono); font-size:12px; color:var(--night-muted)}
 
 /* facts */
@@ -171,7 +172,7 @@ table.earn tr.total td{font-weight:600; color:var(--ink); border-bottom:2px soli
 .seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper)}
 .big{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:12px 24px; padding-bottom:18px; border-bottom:1px solid var(--rule); margin-bottom:16px}
 .big small{display:block; font-size:14px; color:var(--muted)}
-.big b{display:block; font-family:var(--display); font-weight:800; font-size:clamp(52px,9vw,104px); line-height:.95; letter-spacing:-.03em; color:#C9922E}
+.big b{display:block; font-family:var(--display); font-weight:800; font-size:clamp(52px,9vw,104px); line-height:.95; letter-spacing:-.03em; color:var(--ink)}
 .big span{display:block; font-size:14.5px; color:var(--muted); margin-top:6px}
 .bigx{font-family:var(--display); font-weight:800; font-size:clamp(28px,4vw,44px); color:var(--accent); background:var(--accent-soft); border-radius:14px; padding:10px 18px}
 .ladder{display:grid; gap:6px}
@@ -181,13 +182,13 @@ table.earn tr.total td{font-weight:600; color:var(--ink); border-bottom:2px soli
 .rung .m{font-family:var(--display); font-weight:800; font-size:20px}
 .rung .m small{display:block; font:500 11.5px var(--mono); color:var(--muted)}
 .rung .bar{height:26px; border-radius:6px; background:var(--accent-soft); overflow:hidden}
-.rung .bar i{display:block; height:100%; width:0; border-radius:6px; background:linear-gradient(90deg,var(--accent),#C9922E); transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.rung .bar i{display:block; height:100%; width:0; border-radius:6px; background:var(--accent); transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
 .rung .v{text-align:right; font-family:var(--mono); font-weight:500; font-size:15px}
 .rung .v small{display:block; font-size:11.5px; color:var(--muted)}
 .custom{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin-top:16px; font-size:15px; color:var(--muted)}
 .custom .pricebox{font-family:var(--display); font-weight:700; font-size:24px}
 @media (max-width:520px){ .rung{grid-template-columns:70px minmax(0,1fr) 98px; gap:8px} .rung .v{font-size:13px} }
-.vsx{color:#C9922E}
+.vsx{color:var(--accent)}
 .vs-card{padding:26px}
 .vsrow{display:grid; grid-template-columns:76px minmax(0,1fr) 150px; gap:14px; align-items:center; margin-bottom:12px}
 .vsname{font-family:var(--display); font-weight:700; font-size:18px}
@@ -197,13 +198,13 @@ table.earn tr.total td{font-weight:600; color:var(--ink); border-bottom:2px soli
 .vsbar{height:46px; border-radius:8px; background:var(--paper); border:1px solid var(--rule); overflow:hidden}
 .vsbar i{display:block; height:100%; width:0; transition:width 1.6s cubic-bezier(.2,.8,.2,1)}
 .vsbar i.kas{background:var(--kas)}
-.vsbar i.zk{background:#C9922E; min-width:3px}
+.vsbar i.zk{background:var(--zkas); min-width:3px}
 .vs-h{font-size:22px; margin:26px 0 12px}
 .slices{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px}
 .slice{border:1px solid var(--rule); border-radius:12px; padding:14px; background:var(--paper); display:grid; gap:2px}
 .slice small{font-size:13px; color:var(--muted)}
 .slice b{font-family:var(--display); font-weight:800; font-size:24px; line-height:1.1}
-.slice span{font-family:var(--display); font-weight:800; font-size:18px; color:#C9922E}
+.slice span{font-family:var(--display); font-weight:800; font-size:18px; color:var(--ink)}
 @media (max-width:860px){ .slices{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:520px){ .vsrow{grid-template-columns:58px minmax(0,1fr) 110px; gap:8px} .vs-card{padding:18px} }
 .mcapline{margin:14px 0 0; font-size:16px; color:var(--muted)}
@@ -295,7 +296,7 @@ footer{margin-top:88px; padding-block:22px 48px; border-top:1px solid var(--rule
     <div class="sec-head">
       <div class="eyebrow">Since launch &middot; 26 July 2026</div>
       <h2 id="h-hash">ZKAS hashrate, next to Kaspa's</h2>
-      <p>Read from the difficulty the chain itself records, every 12 hours since launch and hourly since, not from pool reports. The orange line is the share of all Kaspa hashrate that is also mining ZKAS.</p>
+      <p>Read from the difficulty the chain itself records, every 12 hours since launch and hourly since, not from pool reports. The dashed line is the share of all Kaspa hashrate that is also mining ZKAS.</p>
     </div>
     <div class="card">
       <div class="card-top">
@@ -460,6 +461,8 @@ async function loadLive() {
     ksup: getJSON("https://api.kaspa.org/info/coinsupply"),
     supply: getJSON("https://explorer.zkas.info/api/info/coinsupply"),
     kh: getJSON("https://api.kaspa.org/info/hashrate?stringOnly=false"),
+    kdag: getJSON("https://api.kaspa.org/info/blockdag"),
+    pulse: getJSON("https://explorer.zkas.info/api/info/pulse"),
     kr: getJSON("https://api.kaspa.org/info/blockreward"),
     kp: getJSON("https://api.kaspa.org/info/price"),
   };
@@ -468,10 +471,25 @@ async function loadLive() {
   return out;
 }
 
+/* Several sources measure each hashrate. Show the highest reading that another source confirms
+   within 3%; when no two agree that closely, the middle reading, so one outlier never sets it. */
+const AGREE = 0.03;
+function agreedHigh(vals) {
+  const v = vals.filter(x => x > 0).sort((a, b) => b - a);
+  if (v.length < 2) return v[0] || 0;
+  for (let i = 0; i < v.length; i++) if (v.some((w, j) => j !== i && Math.abs(v[i] - w) <= AGREE * v[i])) return v[i];
+  return v[Math.floor(v.length / 2)];
+}
+const avg = a => a && a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+
 /* the "now" state: live where possible, else the newest collected sample */
 function current(H, L) {
   const s = H && H.samples && H.samples.length ? H.samples[H.samples.length - 1] : {zkas: {}, kaspa: {}, price: {}};
-  const zh = L.dag ? L.dag.difficulty * 2 : (s.zkas.difficulty || s.zkas.pool);
+  // ZKAS (1 block per second): difficulty x 2, the explorer's 15-minute measured average, the pool's figure.
+  const zLive = [L.dag && L.dag.difficulty * 2, L.pulse && avg(L.pulse.hashrateBins), L.pool && L.pool.networkHashrate];
+  const zh = agreedHigh(zLive) || agreedHigh([s.zkas.difficulty, s.zkas.pulse, s.zkas.pool]);
+  // Kaspa (10 blocks per second): api.kaspa.org's figure and its difficulty x 2 x 10.
+  const kh = agreedHigh([L.kh && L.kh.hashrate * 1e12, L.kdag && L.kdag.difficulty * 20]) || s.kaspa.hashrate;
   return {
     live: !!(L.dag && L.otc && L.kh),
     asOf: L.dag ? Date.now() : s.t,
@@ -481,7 +499,7 @@ function current(H, L) {
     nextReduction: L.halving ? L.halving.nextHalvingTimestamp : s.zkas.nextReductionTs,
     zkasUsd: L.cg && L.cg.zkas ? L.cg.zkas.usd : L.otc ? L.otc.zkasUsd : s.price.zkasUsd,
     kasUsd: L.otc ? L.otc.kasUsd : (L.kp ? L.kp.price : s.price.kasUsd),
-    kaspaHashrate: L.kh ? L.kh.hashrate * 1e12 : s.kaspa.hashrate,
+    kaspaHashrate: kh,
     kaspaReward: L.kr ? L.kr.blockreward : s.kaspa.reward,
     supply: L.supply ? Number(L.supply.circulatingSupply) / 1e8 : s.zkas.supply,
     kaspaCap: L.cg && L.cg.kaspa ? L.cg.kaspa.usd_market_cap : null,
@@ -514,7 +532,8 @@ function zkasSeries(H) {
   const fromBits = bits => { const e = bits >>> 24, m = bits & 0xffffff; return Math.pow(2, 256) / (m * Math.pow(256, e - 3)); };
   const out = (H.pruningPoints || []).filter(p => p.daa > 0 && p.bits).map(p => [p.ts, fromBits(p.bits)]).sort((a, b) => a[0] - b[0]);
   const last = out.length ? out[out.length - 1][0] : GENESIS;
-  // Hourly samples since the last pruning point: average the explorer's three readings and the pool's.
+  // Hourly samples since the last pruning point: the explorer's readings and the pool's, by the same
+  // rule as the live figure (the highest one another confirms within 3%).
   const bucket = new Map();
   for (const s of H.samples || []) {
     if (s.t <= last) continue;
@@ -522,7 +541,7 @@ function zkasSeries(H) {
     if (!vals.length) continue;
     const k = Math.floor(s.t / 21600000);   // 6-hour buckets
     const b = bucket.get(k) || [];
-    b.push(vals.reduce((a, v) => a + v, 0) / vals.length); bucket.set(k, b);
+    b.push(agreedHigh(vals)); bucket.set(k, b);
   }
   for (const [k, b] of [...bucket].sort((a, b) => a[0] - b[0])) out.push([k * 21600000 + 10800000, b.reduce((a, v) => a + v, 0) / b.length]);
   return out;
@@ -866,8 +885,8 @@ function heroCanvas() {
     }
     for (const b of blocks) { ctx.fillStyle = "rgba(120,169,214,.30)"; ctx.strokeStyle = "rgba(120,169,214,.55)"; ctx.fillRect(b.x, b.y, b.w, 14); ctx.strokeRect(b.x + .5, b.y + .5, b.w - 1, 13); }
     for (const z of zk) { const age = Math.min(1, (now - z.born) / 900);
-      ctx.save(); ctx.globalAlpha = .25 + .6 * age; ctx.fillStyle = "#7FD1C1"; ctx.fillRect(z.x, z.y, 16, 14);
-      ctx.fillStyle = "#0E1418"; for (let k = -14; k < 16; k += 5) { ctx.fillRect(z.x + k + 5, z.y, 1.6, 14); } ctx.restore(); }
+      ctx.save(); ctx.globalAlpha = .25 + .6 * age; ctx.fillStyle = "#E7A9B4"; ctx.fillRect(z.x, z.y, 16, 14);
+      ctx.fillStyle = "#1C1F1E"; for (let k = -14; k < 16; k += 5) { ctx.fillRect(z.x + k + 5, z.y, 1.6, 14); } ctx.restore(); }
     blocks = blocks.filter(b => b.x < W + 40); zk = zk.filter(z => z.x < W + 40);
     ctx.font = "500 10.5px IBM Plex Mono, monospace"; ctx.fillStyle = "rgba(147,163,160,.75)"; ctx.textAlign = "right";
     if (W > 640) { ctx.fillText("KASPA", W - 20, laneK() - 22); ctx.fillText("ZKAS, SAME WORK", W - 20, laneZ() + 32); }
