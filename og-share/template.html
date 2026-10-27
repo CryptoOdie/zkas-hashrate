@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,900&family=Manrope:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;box-sizing:border-box}
+body{width:1200px;height:630px;background:#030404;color:#F4F7F6;font-family:Manrope,sans-serif;position:relative;overflow:hidden}
+.glow{position:absolute;border-radius:50%;filter:blur(90px)}
+.g1{width:760px;height:760px;left:300px;top:-260px;opacity:.22;background:conic-gradient(#55EBC6,#4FA8FF,#9B6BFF,#FF6FB5,#FFC46B,#7CF2A8,#55EBC6)}
+.g2{width:520px;height:520px;left:-200px;bottom:-280px;opacity:.14;background:conic-gradient(#9B6BFF,#FF6FB5,#55EBC6,#4FA8FF,#9B6BFF)}
+.logo{position:absolute;left:60px;top:95px;width:440px;height:440px}
+.txt{position:absolute;left:540px;top:140px;right:50px}
+.big{font:900 200px/0.9 Archivo;font-stretch:118%;letter-spacing:-6px;background:linear-gradient(90deg,#55EBC6,#7CF2A8,#4FA8FF,#9B6BFF,#FF6FB5);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cap{font-size:34px;font-weight:700;color:#C9D2CE;margin-top:18px;line-height:1.2}
+.url{position:absolute;right:50px;bottom:38px;font:700 24px Manrope;color:#8C9893}
+.line{position:absolute;left:0;right:0;bottom:0;height:5px;background:linear-gradient(90deg,#55EBC6,#4FA8FF,#9B6BFF,#FF6FB5,#FFC46B,#55EBC6)}
+</style></head><body>
+<div class="glow g1"></div><div class="glow g2"></div>
+<img class="logo" src="logo.png" alt="">
+<div class="txt"><div class="big">{{NOW}}%</div><div class="cap">of Kaspa's hashrate<br>already mines ZKAS</div></div>
+<div class="url">zkas-share.web.app</div><div class="line"></div>
+</body></html>

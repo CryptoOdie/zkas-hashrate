@@ -11,3 +11,7 @@ Hourly record of ZKAS network hashrate, Kaspa hashrate and ZKAS price, and the s
 
 ZKAS hashrate between pruning points is the chain's own cumulative work divided by elapsed time, so it is a
 measured average, not an estimate. Not affiliated with the ZKAS project. Not investment advice.
+
+**https://zkas-share.web.app** (`share-site/`): ZKAS's share of Kaspa hashrate. `.github/workflows/share-og.yml` runs
+`og-share/build.js` once a day: it redraws the link-preview image (`og.png`) with the current share, bumps its `?v=`
+so X fetches the new one, and redeploys. Edit this copy of the site, not an older folder elsewhere.

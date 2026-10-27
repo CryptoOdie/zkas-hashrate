@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ZKAS Hash Share</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<meta name="description" content="How much of Kaspa's hashrate also mines ZKAS, and where the trend points.">
+<meta name="theme-color" content="#030404">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://zkas-share.web.app/">
+<meta property="og:title" content="How much of Kaspa mines ZKAS">
+<meta property="og:description" content="ZKAS's share of Kaspa hashrate since launch, and where the trend points.">
+<meta property="og:image" content="https://zkas-share.web.app/og.png?v=2026-10-27">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,800..900&family=Manrope:wght@500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+@property --oil{syntax:"<angle>";inherits:false;initial-value:0deg}
+:root{
+  color-scheme:dark;
+  --void:#030404; --white:#F4F7F6; --dim:#8C9893; --soft:#C9D2CE; --line:rgba(255,255,255,.09); --glass:rgba(255,255,255,.035);
+  --mint:#55EBC6; --zkas:#55EBC6; --muted:#8C9893; --rule:rgba(255,255,255,.14); --grid:rgba(255,255,255,.07); --band:rgba(85,235,198,.12); --surface:#0A0C0C;
+  --oil-film:conic-gradient(from var(--oil),#55EBC6,#4FA8FF,#9B6BFF,#FF6FB5,#FFC46B,#7CF2A8,#55EBC6);
+  --display:"Archivo","Arial Black",system-ui,sans-serif; --body:"Manrope","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@keyframes oilspin{to{--oil:360deg}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--void); color:var(--white); font-family:var(--body); line-height:1.55; -webkit-font-smoothing:antialiased; overflow-x:hidden}
+#oil{position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; opacity:.22}
+.blob{position:fixed; border-radius:50%; filter:blur(110px); pointer-events:none; mix-blend-mode:screen; background:var(--oil-film); animation:oilspin 16s linear infinite; z-index:0}
+.b1{width:70vmax; height:70vmax; left:20%; top:-30%; opacity:.09}
+.b2{width:55vmax; height:55vmax; right:-20vmax; bottom:-20vmax; opacity:.06; animation-duration:22s}
+main{position:relative; z-index:1; max-width:980px; margin:0 auto; padding:48px 16px 40px; text-align:center}
+.logo{display:block; width:min(300px,62vw); height:auto; aspect-ratio:1; margin:0 auto}
+.eyebrow{margin-top:34px; font:500 12px var(--mono); letter-spacing:.18em; text-transform:uppercase; color:var(--dim)}
+.big{font-family:var(--display); font-stretch:118%; font-weight:900; font-size:clamp(96px,22vw,210px); line-height:.9; letter-spacing:-.03em; margin-top:14px;
+  background:var(--oil-film); background-size:140% 140%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:oilspin 10s linear infinite}
+.cap{font-size:clamp(18px,2.6vw,24px); color:var(--soft); margin-top:12px}
+.stats{display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:30px}
+.stat{min-width:150px; padding:14px 20px; border:1px solid var(--line); border-radius:16px; background:var(--glass); backdrop-filter:blur(8px)}
+.stat b{display:block; font-family:var(--display); font-weight:900; font-size:24px; font-stretch:110%}
+.stat small{color:var(--dim); font-size:13px}
+.card{margin-top:34px; text-align:left; border:1px solid var(--line); border-radius:20px; background:var(--glass); backdrop-filter:blur(8px); padding:18px 16px 10px}
+.card h2{margin:0 0 4px 4px; font:700 15px var(--body); color:var(--soft)}
+.legend{display:flex; flex-wrap:wrap; gap:6px 16px; margin:0 0 6px 4px; font-size:12.5px; color:var(--dim)}
+.legend i{display:inline-block; width:18px; height:0; border-top:2px solid var(--mint); vertical-align:middle; margin-right:6px}
+.legend i.dash{border-top-style:dashed}
+.legend i.band{height:10px; border:0; border-radius:2px; background:var(--band)}
+.plot{position:relative}
+.plot svg{display:block; width:100%; height:auto; overflow:visible}
+.axis text{font:400 11px var(--mono); fill:var(--dim)}
+.tip{position:absolute; pointer-events:none; background:#0A0C0C; border:1px solid var(--line); border-radius:10px; padding:8px 10px; font-size:12.5px; line-height:1.45; white-space:nowrap; opacity:0; transition:opacity .12s; text-align:left}
+.tip b{font-family:var(--mono); font-weight:500}
+.tip .k{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:6px}
+.note{color:var(--dim); font-size:13px; margin-top:14px}
+footer{position:relative; z-index:1; text-align:center; color:var(--dim); font-size:12px; padding:0 16px 34px}
+footer a{color:var(--soft)}
+@media (prefers-reduced-motion: reduce){.big,.blob{animation:none}}
+</style>
+</head>
+<body>
+<canvas id="oil" aria-hidden="true"></canvas>
+<div class="blob b1" aria-hidden="true"></div><div class="blob b2" aria-hidden="true"></div>
+<main>
+  <img class="logo" src="logo.png" alt="ZKAS" width="300" height="300">
+  <div class="eyebrow">How much of Kaspa mines ZKAS</div>
+  <div class="big" id="share">&ndash;</div>
+  <div class="cap">of all Kaspa hashrate also mines ZKAS</div>
+  <div class="stats">
+    <div class="stat"><b id="tZ">&ndash;</b><small>ZKAS hashrate</small></div>
+    <div class="stat"><b id="tK">&ndash;</b><small>Kaspa hashrate</small></div>
+    <div class="stat"><b id="tB">&ndash;</b><small>more earned vs Kaspa alone</small></div>
+  </div>
+  <div class="card">
+    <h2>Share since launch, and where the trend points</h2>
+    <div class="legend"><span><i></i>Measured</span><span><i class="dash"></i>Trend, next 90 days</span><span><i class="band"></i>Range of recent trends</span></div>
+    <div class="plot" id="pShare"></div>
+  </div>
+  <div class="note" id="status">Loading live data&hellip;</div>
+</main>
+<footer>Projection, not a forecast &middot; Data: explorer.zkas.info, mining-pool.zkas.info, api.kaspa.org &middot; Earnings detail: <a href="https://zkas-mining.web.app">zkas-mining.web.app</a> &middot; Not investment advice</footer>
+<script>
+const HISTORY_URLS = ["https://raw.githubusercontent.com/CryptoOdie/zkas-hashrate/main/data/history.json"];
+const GENESIS = 1785079572000;
+const SECONDS_PER_MONTH = 2629800, ZKAS_STEP_S = SECONDS_PER_MONTH / 4, STEP = Math.pow(2, -1 / 12);
+const TAIL_SWITCH = GENESIS / 1000 + 24 * SECONDS_PER_MONTH;
+const ZKAS_MINER_SHARE = 0.95, KASPA_BPS = 10, ZKAS_BPS = 1, DAY = 86400000;
+const AHEAD_DAYS = 90, Z80 = 1.2816;
+const $ = id => document.getElementById(id);
+const getJSON = async u => { const r = await fetch(u, {cache: "no-store"}); if (!r.ok) throw new Error(r.status); return r.json(); };
+const hr = h => h >= 1e18 ? (h / 1e18).toFixed(2) + " EH/s" : h >= 1e15 ? (h / 1e15).toFixed(1) + " PH/s" : (h / 1e12).toFixed(1) + " TH/s";
+const pct = (v, d = 1) => v.toFixed(d) + "%";
+const avg = a => a && a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+const fmtDate = t => new Date(t).toLocaleDateString("en-US", {month: "short", day: "numeric"});
+
+/* The highest reading another source confirms within 3%; else the middle one. */
+const AGREE = 0.03;
+function agreedHigh(vals) {
+  const v = vals.filter(x => x > 0).sort((a, b) => b - a);
+  if (v.length < 2) return v[0] || 0;
+  for (let i = 0; i < v.length; i++) if (v.some((w, j) => j !== i && Math.abs(v[i] - w) <= AGREE * v[i])) return v[i];
+  return v[Math.floor(v.length / 2)];
+}
+
+async function loadLive() {
+  const tries = {
+    dag: getJSON("https://explorer.zkas.info/api/info/blockdag"),
+    pulse: getJSON("https://explorer.zkas.info/api/info/pulse"),
+    halving: getJSON("https://explorer.zkas.info/api/info/halving"),
+    pool: getJSON("https://mining-pool.zkas.info/api/stats"),
+    otc: getJSON("https://mining-pool.zkas.info/api/otc/price"),
+    cg: getJSON("https://api.coingecko.com/api/v3/simple/price?ids=zkas,kaspa&vs_currencies=usd"),
+    kh: getJSON("https://api.kaspa.org/info/hashrate?stringOnly=false"),
+    kdag: getJSON("https://api.kaspa.org/info/blockdag"),
+    kr: getJSON("https://api.kaspa.org/info/blockreward"),
+    kp: getJSON("https://api.kaspa.org/info/price"),
+  };
+  const keys = Object.keys(tries), res = await Promise.allSettled(Object.values(tries));
+  const out = {}; keys.forEach((k, i) => out[k] = res[i].status === "fulfilled" ? res[i].value : null);
+  return out;
+}
+async function loadHistory() {
+  for (const u of HISTORY_URLS) { try { return await getJSON(u); } catch {} }
+  return {pruningPoints: [], samples: [], kaspaDaily: []};
+}
+
+function current(H, L) {
+  const s = H.samples && H.samples.length ? H.samples[H.samples.length - 1] : {zkas: {}, kaspa: {}, price: {}};
+  const zh = agreedHigh([L.dag && L.dag.difficulty * 2, L.pulse && avg(L.pulse.hashrateBins), L.pool && L.pool.networkHashrate])
+    || agreedHigh([s.zkas.difficulty, s.zkas.pulse, s.zkas.pool]);
+  const kh = agreedHigh([L.kh && L.kh.hashrate * 1e12, L.kdag && L.kdag.difficulty * 20]) || s.kaspa.hashrate;
+  return {
+    live: !!(L.dag && L.kh), asOf: L.dag ? Date.now() : s.t,
+    zkasHashrate: zh, kaspaHashrate: kh,
+    zkasReward: L.halving ? L.halving.currentAmount : s.zkas.reward,
+    nextReduction: L.halving ? L.halving.nextHalvingTimestamp : s.zkas.nextReductionTs,
+    zkasUsd: L.cg && L.cg.zkas ? L.cg.zkas.usd : L.otc ? L.otc.zkasUsd : s.price.zkasUsd,
+    kasUsd: L.otc ? L.otc.kasUsd : (L.kp ? L.kp.price : s.price.kasUsd),
+    kaspaReward: L.kr ? L.kr.blockreward : s.kaspa.reward,
+  };
+}
+
+/* rewards per second; the same schedule as zkas-mining.web.app */
+function zkasRewardAt(C, t) {
+  const n = t < C.nextReduction ? 0 : 1 + Math.floor((t - C.nextReduction) / ZKAS_STEP_S);
+  return Math.max(C.zkasReward * ZKAS_BPS * Math.pow(STEP, n), t < TAIL_SWITCH ? 6 : 0.6);
+}
+const kaspaRewardAt = (C, t0, t) => C.kaspaReward * KASPA_BPS * Math.pow(STEP, (t - t0) / SECONDS_PER_MONTH);
+/* ZKAS earnings over Kaspa earnings for a small miner, at ZKAS hashrate z, Kaspa hashrate k, time t (s) */
+function boostAt(C, z, k, t) {
+  const t0 = C.asOf / 1000;
+  const zk = zkasRewardAt(C, t) * ZKAS_MINER_SHARE * C.zkasUsd / z;
+  const ka = kaspaRewardAt(C, t0, t) * C.kasUsd / k;
+  return zk / ka * 100;
+}
+
+/* ---------- series ---------- */
+function zkasSeries(H) {
+  const fromBits = b => { const e = b >>> 24, m = b & 0xffffff; return Math.pow(2, 256) / (m * Math.pow(256, e - 3)); };
+  const out = (H.pruningPoints || []).filter(p => p.daa > 0 && p.bits).map(p => [p.ts, fromBits(p.bits)]);
+  const last = out.length ? Math.max(...out.map(p => p[0])) : GENESIS;
+  for (const s of H.samples || []) if (s.t > last) { const v = agreedHigh([s.zkas.difficulty, s.zkas.pulse, s.zkas.pool]); if (v) out.push([s.t, v]); }
+  return out.sort((a, b) => a[0] - b[0]);
+}
+function kaspaSeries(H) {
+  const out = (H.kaspaDaily || []).map(d => [Date.parse(d.d + "T12:00:00Z"), d.h]);
+  const lastT = out.length ? out[out.length - 1][0] : 0;
+  for (const s of H.samples || []) if (s.t > lastT + 3600000 && s.kaspa.hashrate) out.push([s.t, s.kaspa.hashrate]);
+  return out.sort((a, b) => a[0] - b[0]);
+}
+function interp(series, t) {
+  if (!series.length) return null;
+  if (t <= series[0][0]) return series[0][1];
+  for (let i = 1; i < series.length; i++) if (t <= series[i][0]) {
+    const [t0, v0] = series[i - 1], [t1, v1] = series[i]; return v0 + (v1 - v0) * (t - t0) / (t1 - t0);
+  }
+  return series[series.length - 1][1];
+}
+/* daily means, so hourly samples do not outweigh the 12-hour history */
+function daily(series) {
+  const m = new Map();
+  for (const [t, v] of series) { const k = Math.floor(t / DAY); const a = m.get(k) || []; a.push(v); m.set(k, a); }
+  return [...m].sort((a, b) => a[0] - b[0]).map(([k, a]) => [k * DAY + DAY / 2, avg(a)]);
+}
+
+/* Trend lines fitted to logit(share) (so a projection never passes 0% or 100%) over the last
+   30, 60 and 90 days. The middle line is the 60-day trend; the band spans the three trends, widened
+   by each fit's own scatter (80%). Every line starts from the last 3 days' average share. */
+function fit(share, nowT, days) {
+  const logit = p => Math.log(p / (1 - p));
+  const pts = share.filter(([t, v]) => t >= nowT - days * DAY && v > 0 && v < 100).map(([t, v]) => [(t - nowT) / DAY, logit(v / 100)]);
+  const n = pts.length; if (n < 8) return null;
+  const mx = avg(pts.map(p => p[0])), my = avg(pts.map(p => p[1]));
+  let sxx = 0, sxy = 0; for (const [x, y] of pts) { sxx += (x - mx) ** 2; sxy += (x - mx) * (y - my); }
+  const b = sxy / sxx, a = my - b * mx;
+  let sse = 0; for (const [x, y] of pts) sse += (y - a - b * x) ** 2;
+  return {b, se: Math.sqrt(sse / (n - 2)), n, mx, sxx};
+}
+function project(share, nowT) {
+  const logit = p => Math.log(p / (1 - p)), inv = x => 1 / (1 + Math.exp(-x)) * 100;
+  const recent = share.filter(([t]) => t >= nowT - 3 * DAY).map(p => p[1]);
+  if (!recent.length) return null;
+  const a0 = logit(avg(recent) / 100);
+  const fits = [30, 60, 90].map(d => fit(share, nowT, d)).filter(Boolean);
+  const mid = fit(share, nowT, 60) || fits[0]; if (!mid) return null;
+  const out = [];
+  for (let d = 0; d <= AHEAD_DAYS; d++) {
+    let lo = Infinity, hi = -Infinity;
+    for (const f of fits) {
+      const w = Z80 * f.se * Math.sqrt(1 + 1 / f.n + (d - f.mx) ** 2 / f.sxx) * Math.min(1, d / 14);  // opens smoothly from the start point
+      lo = Math.min(lo, a0 + f.b * d - w); hi = Math.max(hi, a0 + f.b * d + w);
+    }
+    out.push({t: nowT + d * DAY, mid: inv(a0 + mid.b * d), lo: inv(lo), hi: inv(hi)});
+  }
+  return {points: out};
+}
+
+/* ---------- chart ---------- */
+const RANGES = [["1M", 30], ["3M", 90], ["All", 0]];
+const range = {share: 0, hash: 0};
+function buildRanges(key, redraw) {
+  const box = document.querySelector(`.ranges[data-for="${key}"]`);
+  box.innerHTML = RANGES.map(([l, d]) => `<button type="button" data-d="${d}" aria-pressed="${d === range[key]}">${l}</button>`).join("");
+  box.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    range[key] = +b.dataset.d; box.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); redraw();
+  }));
+}
+function niceMax(v) { const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= v) return m * p; return 10 * p; }
+
+/* cfg: {x0, x1, ymax, fmtY, lines:[{data, color, dash, label, fmt}], band:{data:[[t,lo,hi]]}, tipExtra} */
+function chart(el, cfg) {
+  const W = Math.max(320, el.clientWidth || 900), Hh = W < 560 ? 240 : 320, m = {l: 52, r: 16, t: 12, b: 28};
+  const iw = W - m.l - m.r, ih = Hh - m.t - m.b;
+  const X = t => m.l + (t - cfg.x0) / (cfg.x1 - cfg.x0) * iw, Y = v => m.t + ih - v / cfg.ymax * ih;
+  let g = `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${cfg.label}"><g class="axis">`;
+  for (let i = 0; i <= 4; i++) { const v = cfg.ymax * i / 4, y = Y(v);
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${y}" y2="${y}" stroke="var(--grid)" stroke-width="1"/><text x="${m.l - 8}" y="${y + 4}" text-anchor="end">${cfg.fmtY(v)}</text>`; }
+  const span = cfg.x1 - cfg.x0, ticks = Math.max(2, Math.min(6, Math.floor(iw / 120)));
+  for (let i = 0; i <= ticks; i++) { const t = cfg.x0 + span * i / ticks; g += `<text x="${X(t)}" y="${Hh - 6}" text-anchor="${i === 0 ? "start" : i === ticks ? "end" : "middle"}">${fmtDate(t)}</text>`; }
+  g += `</g>`;
+  if (cfg.today) g += `<line x1="${X(cfg.today)}" x2="${X(cfg.today)}" y1="${m.t}" y2="${m.t + ih}" stroke="var(--rule)" stroke-dasharray="2 4"/><text class="axis" x="${X(cfg.today) + 6}" y="${m.t + 12}" style="font:400 11px var(--mono);fill:var(--muted)">today</text>`;
+  if (cfg.band && cfg.band.length) {
+    const top = cfg.band.map(([t, , hi]) => `${X(t).toFixed(1)},${Y(hi).toFixed(1)}`), bot = cfg.band.slice().reverse().map(([t, lo]) => `${X(t).toFixed(1)},${Y(lo).toFixed(1)}`);
+    g += `<polygon points="${top.concat(bot).join(" ")}" fill="var(--band)"/>`;
+  }
+  for (const L of cfg.lines) {
+    const d = L.data.filter(([t]) => t >= cfg.x0 && t <= cfg.x1).map(([t, v], i) => `${i ? "L" : "M"}${X(t).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+    g += `<path d="${d}" fill="none" stroke="${L.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${L.dash ? ' stroke-dasharray="6 5"' : ""}/>`;
+  }
+  // end labels on the measured lines (direct labels, few)
+  for (const L of cfg.lines.filter(l => l.endLabel)) { const p = L.data.filter(([t]) => t <= cfg.x1).slice(-1)[0]; if (p)
+    g += `<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="4" fill="${L.color}" stroke="var(--surface)" stroke-width="2"/>`; }
+  g += `<line class="cross" x1="0" x2="0" y1="${m.t}" y2="${m.t + ih}" stroke="var(--muted)" stroke-width="1" opacity="0"/>`;
+  g += cfg.lines.map((L, i) => `<circle class="dot d${i}" r="4.5" fill="${L.color}" stroke="var(--surface)" stroke-width="2" opacity="0"/>`).join("");
+  g += `<rect x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent" class="hit"/></svg><div class="tip"></div>`;
+  el.innerHTML = g;
+  const svg = el.querySelector("svg"), tip = el.querySelector(".tip"), cross = el.querySelector(".cross");
+  const move = ev => {
+    const r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) * W / r.width;
+    const t = cfg.x0 + (sx - m.l) / iw * (cfg.x1 - cfg.x0); if (t < cfg.x0 || t > cfg.x1) return hide();
+    cross.setAttribute("x1", X(t)); cross.setAttribute("x2", X(t)); cross.setAttribute("opacity", ".5");
+    let rows = `<div style="color:var(--muted);margin-bottom:2px">${fmtDate(t)}${cfg.today && t > cfg.today ? " · projected" : ""}</div>`;
+    cfg.lines.forEach((L, i) => {
+      const pts = L.data.filter(([tt]) => tt >= cfg.x0 && tt <= cfg.x1), dot = el.querySelector(".d" + i);
+      if (!pts.length || t < pts[0][0] || t > pts[pts.length - 1][0]) { dot.setAttribute("opacity", 0); return; }
+      const v = interp(pts, t); dot.setAttribute("cx", X(t)); dot.setAttribute("cy", Y(v)); dot.setAttribute("opacity", 1);
+      rows += `<div><span class="k" style="background:${L.color}"></span>${L.label} <b>${L.fmt(v)}</b></div>`;
+    });
+    if (cfg.tipExtra) rows += cfg.tipExtra(t);
+    tip.innerHTML = rows; tip.style.opacity = 1;
+    const px = X(t) / W * r.width, left = px > r.width * .6 ? px - tip.offsetWidth - 14 : px + 14;
+    tip.style.left = left + "px"; tip.style.top = "10px";
+  };
+  const hide = () => { tip.style.opacity = 0; cross.setAttribute("opacity", 0); el.querySelectorAll(".dot").forEach(d => d.setAttribute("opacity", 0)); };
+  svg.addEventListener("pointermove", move); svg.addEventListener("pointerleave", hide);
+}
+
+/* ---------- page ---------- */
+let H, C, Z, K, S, P;
+function rebuild() {
+  Z = zkasSeries(H); K = kaspaSeries(H);
+  if (C.zkasHashrate) Z.push([C.asOf, C.zkasHashrate]);
+  if (C.kaspaHashrate) K.push([C.asOf, C.kaspaHashrate]);
+  S = daily(Z.map(([t, v]) => { const k = interp(K, t); return [t, k ? v / k * 100 : 0]; }).filter(p => p[1] > 0));
+  S.push([C.asOf, C.zkasHashrate / C.kaspaHashrate * 100]);
+  P = project(S, C.asOf);
+}
+function render() {
+  $("share").textContent = (C.zkasHashrate / C.kaspaHashrate * 100).toFixed(1) + "%";
+  $("tZ").textContent = hr(C.zkasHashrate); $("tK").textContent = hr(C.kaspaHashrate);
+  $("tB").textContent = "+" + Math.round(boostAt(C, C.zkasHashrate, C.kaspaHashrate, C.asOf / 1000)) + "%";
+  $("status").textContent = (C.live ? "Live" : "Last collected") + " · " + new Date(C.asOf).toLocaleString("en-US", {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"});
+  const x0 = GENESIS, x1 = C.asOf + AHEAD_DAYS * DAY, proj = P ? P.points : [];
+  const ymax = niceMax(Math.max(...S.map(p => p[1]), ...proj.map(p => p.hi)) * 1.05);
+  chart($("pShare"), {
+    label: "ZKAS share of Kaspa hashrate since launch, with a 90-day trend projection", x0, x1, ymax, fmtY: v => Math.round(v) + "%", today: C.asOf,
+    band: proj.map(p => [p.t, p.lo, p.hi]),
+    lines: [
+      {data: S, color: "var(--zkas)", label: "Share", fmt: v => pct(v), endLabel: true},
+      {data: proj.map(p => [p.t, p.mid]), color: "var(--zkas)", dash: true, label: "Trend", fmt: v => pct(v)},
+    ],
+    tipExtra: t => { if (!P || t <= C.asOf) return ""; const q = proj.reduce((a, p) => Math.abs(p.t - t) < Math.abs(a.t - t) ? p : a);
+      return `<div style="color:var(--dim)">Range ${pct(q.lo)} – ${pct(q.hi)}</div>`; },
+  });
+}
+(async () => {
+  const [hist, live] = await Promise.all([loadHistory(), loadLive()]);
+  H = hist; C = current(H, live);
+  if (!C.zkasHashrate || !C.kaspaHashrate) { $("status").textContent = "Live data is unavailable right now. Try again in a minute."; return; }
+  rebuild(); render();
+  let w = innerWidth; addEventListener("resize", () => { if (Math.abs(innerWidth - w) > 40) { w = innerWidth; render(); } });
+  setInterval(async () => { const L = await loadLive(); const n = current(H, L); if (n.zkasHashrate && n.kaspaHashrate) { C = n; rebuild(); render(); } }, 120000);
+})();
+// Background oil slick: a WebGL thin-film shader that flows with scroll and swirls near the pointer.
+(() => {
+  const c = document.getElementById("oil"), gl = c.getContext("webgl", { alpha: false, antialias: false, premultipliedAlpha: false });
+  if (!gl) { c.remove(); return; }
+  const vs = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
+  const fsrc = `precision mediump float;uniform vec2 r;uniform float t;uniform float sc;uniform vec2 m;uniform float sv;uniform vec3 rp;
+  float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+  float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+  float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*n(p);p=p*2.03+vec2(3.1,1.7);a*=.5;}return v;}
+  vec2 swirl(vec2 p,vec2 c,float s,float rad){vec2 d=p-c;float e=exp(-dot(d,d)/rad);float a=s*e;float cs=cos(a),sn=sin(a);return c+mat2(cs,-sn,sn,cs)*d;}
+  void main(){
+    float asp=r.x/r.y; vec2 uv=gl_FragCoord.xy/r.y; vec2 p=uv*1.5+vec2(0.,sc*.0009);
+    float boost=0.;
+    for(int i=0;i<4;i++){
+      float fi=float(i);
+      vec2 c=vec2(asp*(.5+.42*sin(t*(.07+.031*fi)+fi*2.1)),.5+.42*sin(t*(.053+.027*fi)+fi*1.3+sc*.0004))*1.5+vec2(0.,sc*.0009);
+      float str=2.6*sin(t*(.21+.05*fi)+fi*1.7);
+      p=swirl(p,c,str,.09+.05*fi);
+      vec2 dc=uv*1.5+vec2(0.,sc*.0009)-c; boost+=exp(-dot(dc,dc)/.12)*(.5+.5*sin(t*.4+fi));
+    }
+    vec2 dm=uv-m; p=swirl(p,m*1.5+vec2(0.,sc*.0009),2.6,.06);
+    boost+=exp(-dot(dm,dm)/.02)*1.2;
+    float age=t-rp.z; vec2 dr=uv-rp.xy; float dist=length(dr);
+    float ring=sin(dist*42.-age*9.)*exp(-age*1.4)*exp(-abs(dist-age*.35)*9.)*step(0.,age);
+    p+=normalize(dr+1e-4)*ring*.06; boost+=abs(ring)*1.6;
+    p+=vec2(sin(p.y*9.+t*2.)*.025,cos(p.x*9.-t*2.)*.025)*sv;
+    vec2 q=vec2(fbm(p+t*.03),fbm(p+vec2(5.2,1.3)-t*.023));
+    float k=fbm(p+2.4*q+vec2(t*.012,-t*.009));
+    float breathe=.06*sin(t*.35+k*6.)+.04*sin(t*.17+q.x*9.);
+    float film=k*5.+q.x*2.2+sc*.0012+t*.045;
+    vec3 col=.5+.5*cos(6.2831*(film+vec3(0.,.33,.67)));
+    col=mix(col,vec3(.33,.92,.78),.22);
+    float puddle=smoothstep(.5-breathe,.8-breathe,k+q.y*.25+boost*.18);
+    gl_FragColor=vec4(col*puddle*(.55+.35*boost),1.);
+  }`;
+  const sh = (type, src) => { const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); return o; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fsrc)); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { c.remove(); return; }
+  gl.useProgram(pr);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, "a"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const U = { r: gl.getUniformLocation(pr, "r"), t: gl.getUniformLocation(pr, "t"), sc: gl.getUniformLocation(pr, "sc"), m: gl.getUniformLocation(pr, "m"), sv: gl.getUniformLocation(pr, "sv"), rp: gl.getUniformLocation(pr, "rp") };
+  let rx = -9, ry = -9, rt = -99;
+  addEventListener("pointerdown", e => { rx = e.clientX / innerHeight; ry = 1 - e.clientY / innerHeight; rt = (performance.now() - t0) / 1000; }, { passive: true });
+  let vel = 0, lastScroll = scrollY;
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let mx = .7, my = .6, tmx = .7, tmy = .6, scroll = 0, t0 = performance.now();
+  addEventListener("pointermove", e => { tmx = e.clientX / innerHeight; tmy = 1 - e.clientY / innerHeight; }, { passive: true });
+  const phone = matchMedia("(pointer: coarse)").matches || innerWidth < 860;
+  function size() { const k = phone ? .28 : .5; c.width = Math.max(2, innerWidth * k | 0); c.height = Math.max(2, innerHeight * k | 0); gl.viewport(0, 0, c.width, c.height); }
+  let lost = false, lastDraw = 0;
+  c.addEventListener("webglcontextlost", e => { e.preventDefault(); lost = true; });
+  c.addEventListener("webglcontextrestored", () => location.reload());
+  let oilW = innerWidth; addEventListener("resize", () => { if (!phone || innerWidth !== oilW) { oilW = innerWidth; size(); } }); size();
+  function draw(now) {
+    if (lost) return;
+    if (document.hidden || now - lastDraw < (phone ? 33 : 16)) { if (!still) requestAnimationFrame(draw); return; }
+    lastDraw = now;
+    scroll += (scrollY - scroll) * .08; mx += (tmx - mx) * .05; my += (tmy - my) * .05;
+    vel += (Math.min(1, Math.abs(scrollY - lastScroll) / 40) - vel) * .08; lastScroll = scrollY; gl.uniform1f(U.sv, vel); gl.uniform3f(U.rp, rx, ry, rt);
+    gl.uniform2f(U.r, c.width, c.height); gl.uniform1f(U.t, still ? 0 : (now - t0) / 1000); gl.uniform1f(U.sc, scroll); gl.uniform2f(U.m, mx * c.height / c.height, my);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    if (!still) requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+  if (still) addEventListener("scroll", () => requestAnimationFrame(draw), { passive: true });
+})();
+
+</script>
+</body>
+</html>
